@@ -5,12 +5,12 @@ clc
 %% import data and inputs
 
 
-data = 'dataColumns.csv' ; %input('Filename: ');
+data = 'data\dataColumns.csv' ; %input('Filename: ');
 unsData = importdata(data);
 tic
-abaco = importdata('abacusC12_50S500A1_composta.csv');
-longReinforce = importdata('steel_column.csv');
-%shearReinforce = importdata('steel_shear.csv');
+abaco = importdata('info\abacusC12_50S500A1_composta.csv');
+longReinforce = importdata('info\steel_column.csv');
+shearReinforce = importdata('info\steel_shear.csv');
 
 fck = 25;  %MPa
 fyk = 500;  %MPa
@@ -50,6 +50,8 @@ noBars = rowz - 1 ;
 clear rowNum colNum unsData barNameAux auxMat sortData row auxBlock auxMax...
     i j rowz data noCol noRow
 %% EC 2 Design
+
+sAvaila = unique(shearReinforce(:,3));
 
 for i = 1 : noBars
     
@@ -96,7 +98,7 @@ for i = 1 : noBars
     spacing = min([15 * phiRebar/1000, b, .3]);
     
     for k = 1 : 7
-        if sAvaila(k) - spacing <= 0
+        if (sAvaila(k) - spacing) <= 0
             auxMatrix(k,1) = sAvaila(k) - spacing;
         else
             auxMatrix(k,1) = -1000;
@@ -124,6 +126,7 @@ end
 
 
 %% EC 8 design
+%{
 
 %   sAvaila = unique(shearReinforce(:,3));
 
@@ -214,7 +217,7 @@ for i = 1 : noBars
     %}
 end
 
-
+%}
 
 toc
             

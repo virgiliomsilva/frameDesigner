@@ -1,42 +1,10 @@
-%Building Design
-clear
-clc
-tic
-%%
-% Top View
-% ^Y(2)
-% |
-% |
-% |
-% |
-% O - - - - - > 
-% Z(3)       X(1)
-%% import data and inputs
-%input('Filename: ');%%%%%%%%%%%%%%%%%
-%data = 'dataset.csv' ; 
+function [barsOfBeams, beamDesiOrd, beamsOnBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ()
+%% IMPORT DATA
 unsData = importdata('data\dataset.csv');
 element = importdata('data\connectivity.csv');
 nodes = importdata('data\nodes.csv');
 
-%abaco = importdata('abacusC12_50S500A1.csv');
-%longReinforce = importdata('steel_beam.csv');
-%shearReinforce = importdata('steel_shear.csv');
-
-%fck = 25;  %MPa
-%fyk = 500;  %MPa
-%cover = .035; 
-
-%fcd = fck / 1.5; 
-%if fck <= 50
-%    fctm = .3 * fck^(2/3);
-%else
-%    fcm = fck + 8;
-%    fctm = 2.12 * log(1 + fcm / 10);
-%end
-
-%fyd = fyk / 1.15;
-%fywd = fyd; 
-%% transform data
+%% TRANSFORM DATA
 %extract only 'real' data
 [noRow, noCol] = size(unsData.textdata);
 barNameAux = extractBefore(unsData.textdata(2:noRow,:),"/");
@@ -278,9 +246,8 @@ for i = 1 : size(bocAux,1)
     rowzz = rowzz + 1 ;
 end                             
 
-clear a aStory auxMat auxMax auxNode auxStories barNameAux ... barsOfBeams ...
-    barsOfColumns bocAux d finalData i ind j k nCol nColNew noBars ...
-    noCol node_i node_j nodes norm normVect noRow nRow revOrder row ...
-    rowz rowzz s sortData unsData vect xBari xCol xi xj yBari yCol yi ...
-    yj zBari zBarj zi zj
-toc
+% clear a aStory auxMat auxMax auxNode auxStories barNameAux ... barsOfBeams ...
+%     barsOfColumns bocAux d finalData i ind j k nCol nColNew noBars ...
+%     noCol node_i node_j nodes norm normVect noRow nRow revOrder row ...
+%     rowz rowzz s sortData unsData vect xBari xCol xi xj yBari yCol yi ...
+%     yj zBari zBarj zi zj
