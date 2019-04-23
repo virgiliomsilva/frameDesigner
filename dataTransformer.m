@@ -1,4 +1,4 @@
-function [barsOfBeams, beamDesiOrd, beamsOnBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ()
+%function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ()
 %% IMPORT DATA
 unsData = importdata('data\dataset.csv');
 element = importdata('data\connectivity.csv');
@@ -13,7 +13,7 @@ for i = 1 : (noRow - 1)
 end
 sortData = abs([auxMat, unsData.data]);
 
-%get the load envelope for each bar
+%% get the load envelope for each bar
 row = 1; rowz = 1;
 finalData = zeros(size(unique(sortData(:, 1)), 1), 7);
 for j = unique(sortData(:, 1)).'
@@ -30,8 +30,7 @@ for j = unique(sortData(:, 1)).'
     row = 1;
 end
 noBars = rowz - 1;
-
-%identify and assign stories to nodes
+%% identify and assign stories to nodes
 auxStories = unique(nodes(:, 4));
 ind = 0;
 for k = 1 : size(auxStories)
@@ -44,7 +43,7 @@ for j = 1 : size(nodes,1)
     nodes(j,5) = stories(stories(:,2) == nodes(j,4), 1);
 end
 
-%identify and assign directions to bars
+%% identify and assign directions to bars
 for i = 1 : noBars
     node_i = element(i,2);
     node_j = element(i,3);
@@ -56,17 +55,19 @@ for i = 1 : noBars
     zj = nodes(nodes(:,1) == node_j, 4);
     vect = [xi-xj, yi-yj, zi-zj];
     norm = sqrt((xi-xj)^2+(yi-yj)^2+(zi-zj)^2);
-    normVect = abs(vect / norm);
+    normVect = round(abs(vect / norm));
     if normVect == [1, 0, 0]
         element(i, 4) = 1;
     elseif normVect == [0, 1, 0]
         element(i, 4) = 2;
     elseif normVect == [0, 0, 1]
         element(i, 4) = 3;
+    else
+        display(normVect) %element(i, 5) = normVect
     end
 end
 
-%bars to beams
+%% bars to beams
 barsOfBeams =[];
 for j = 1 : size(element,1)
     for i = [2 3]
@@ -104,7 +105,7 @@ for j = 1 : size(element,1)
 	end
 end
 
-%beams ON beams %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%new block of code   
+%% beams ON beams %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%new block of code   
 %precedencia de beams para aqueles que intersetam middle way
 beamsOnBeams =[];
 for j = 1 : size(element,1)
@@ -143,7 +144,7 @@ for j = 1 : size(element,1)
 	end
 end
 
-%naming
+%% naming
 barsOfBeams = unique(barsOfBeams,'rows');
 noTimesNaming = max(sum([barsOfBeams(:,1);barsOfBeams(:,2)]==[barsOfBeams(:,1);barsOfBeams(:,2)]'));
 
@@ -173,7 +174,7 @@ beamsOnBeams = beamsOnBeams.' ;
 beamsOnBeams = unique(beamsOnBeams,'rows') ;
 beamsOnBeams = beamsOnBeams.' ;
 
-%order of beams to be designed 
+%% order of beams to be designed 
 nRow = size(beamsOnBeams,1);
 nCol = size(beamsOnBeams,2);
 nColNew = 3;
@@ -204,9 +205,15 @@ for i = size(revOrder,2): -1 : 1
     beamDesiOrd = [beamDesiOrd, revOrder(i)] ;
 end
 
-%%get the load envelope for each BEAM
+%single beams
+anoAuxBlock = element(element(:,4) ~= 3, 1);
+AA = setxor(beamDesiOrd, anoAuxBlock);
+BB = setxor(AA,barsOfBeams(:,1));
+BB(BB(:,1) == 0,:) = [] ;
+beamDesiOrd = [beamDesiOrd, BB'];
+%% get the load envelope for each BEAM
 row = 1; rowz = 1;
-DataDesign = zeros(size(unique(finalData(:, 1)), 1), 7);
+DataDesign = zeros(size(unique(finalData(:, 1)), 1) + 1, 7);
 for j = unique(finalData(:, 1)).'
     for i = 1 : noBars
         if j == finalData(i, 1)
@@ -221,7 +228,7 @@ for j = unique(finalData(:, 1)).'
     row = 1;
 end
 
-%bars of the same column %% zero efficiency writes the same line as the
+%% bars of the same column %% zero efficiency writes the same line as the
 %same number of stories
 % PROBLEM CASE: column missing in some stories are not the same column AKA
 % not same line
@@ -245,8 +252,8 @@ for i = 1 : size(bocAux,1)
     end
     rowzz = rowzz + 1 ;
 end                             
-
-% clear a aStory auxMat auxMax auxNode auxStories barNameAux ... barsOfBeams ...
+barsOfColumns = unique(barsOfColumns, 'rows') ;
+%% clear a aStory auxMat auxMax auxNode auxStories barNameAux ... barsOfBeams ...
 %     barsOfColumns bocAux d finalData i ind j k nCol nColNew noBars ...
 %     noCol node_i node_j nodes norm normVect noRow nRow revOrder row ...
 %     rowz rowzz s sortData unsData vect xBari xCol xi xj yBari yCol yi ...

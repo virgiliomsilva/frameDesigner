@@ -1,60 +1,72 @@
-function [col2, col3, col4, col5, col6, col7, col8, col9, col10] = beamDesignEC2(fck, fyk , cover, M_Ed, Fz_Ed, b_input)
-
-
+function [col2, col3, col4, col5, col6, col7, col8, col9, col10] = beamDesignEC2(fck, fyk , cover, M_Ed, Fz_Ed, b_input, h_input)
 %%
-abaco = importdata('abacusC12_50S500A1.csv');
-longReinforce = importdata('steel_beam.csv');
-shearReinforce = importdata('steel_shear.csv');
-
-% fck = 25;  %MPa
-% fyk = 500;  %MPa
-% cover = .035; 
+% clear
+% clc
+%%
+% fck = 25;
+% fyk = 500;
+% cover = 0.035;
+% M_Ed = 150;
+% Fz_Ed = 30;
+% b_input = .2;
+%%
+abaco = importdata('info\abacusC12_50S500A1.csv');
+longReinforce = importdata('info\steel_beam.csv');
+shearReinforce = importdata('info\steel_shear.csv');
 
 fcd = fck / 1.5; 
 fctm = .3 * fck^(2/3);
 fyd = fyk / 1.15;
 fywd = fyd; 
-%%
-% EC 2 design
+%% % EC 2 design
 %reinfSolu(i,1) = finalData(i,1);
 
 %long rebar
 %M_Ed %= finalData(i,5);
-h = .20;
+if nargin == 7
+    h = h_input ;
+else
+    h = min([ .20, b_input]); % at minimun is a square
+end
+
 start_h = h;
 ratio = 2;
-while ratio > 1.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     if nargin == 5
-%         b = floor(.6 * h * 20) / 20;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% usar a condição dada pela função
-%     elseif
-    b = b_input
-%     end
-    
-    d = h - (cover + .02);  %approximated
+b = b_input;
 
+while ratio > 1.05 %%%%%
+    
+    %delete rows of longReinforce that don't fit on the given b_input
+    deleteRow = [];
+    for ii = 1 : size(longReinforce,1) 
+        if longReinforce(ii, 2) <= 3
+            noBarras = longReinforce(ii, 2);
+            espaco = noBarras - 1 ;
+            espacoEntre = espaco * .05 ;
+        else
+            noBarras = longReinforce(ii, 2) ;
+            espaco = ceil(noBarras / 2) - 1 ;
+            espacoEntre = espaco * .05 ;
+        end
+        
+        dife = b - 2 * cover - espacoEntre - noBarras * (longReinforce(ii, 1) / 1000);
+        
+        if dife < 0
+            deleteRow = [deleteRow, ii] ;
+        end
+    end
+    longReinforce(deleteRow,:) = [] ;   
+    
     %long rebar starting values
+    d = h - (cover + .02);  %approximated
     redBendMom = M_Ed / (b * d^2 * fcd * 1000);
     reinfPerc = interp1(abaco(:,1).',abaco(:,2).',max([.005, redBendMom]));
     reinfAreaAux = reinfPerc * b * d * fcd / fyd;
     reinfArea = max([reinfAreaAux, .26 * fctm * b * d / fyk, .0013 * b * d]);
-
-    for j = 1 : size(longReinforce,1)
-        if longReinforce(j,3) - reinfArea > 0
-            diffAuxL(j,1) = longReinforce(j,3) - reinfArea;
-        else
-            diffAuxL(j,1) = 1000;
-        end
-    end
-        [minDiff, minIndexA] = min(diffAuxL);
-        noRebar = longReinforce(minIndexA,2);
-        phiRebar = longReinforce(minIndexA,1);
-
-
+    
     %long rebar iterations
-    clearance = min([3 , (noRebar - 1)]) * .05;
     M_Rd = 0;
     if M_Ed > M_Rd
-        for j = 1 : size(longReinforce,1) %doesn't make sense on the first while iteration, but it comes to use from second on
+        for j = 1 : size(longReinforce,1) 
             if longReinforce(j,3) - reinfArea > 0
                 diffAuxL(j,1) = longReinforce(j,3) - reinfArea;
             else
@@ -67,24 +79,9 @@ while ratio > 1.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %check asmax
         end
 
-        if col4 <= 4
-            noRebar = col4;
-            space = noRebar - 1;
-            clearance = noRebar * .05;
-        else
-            noRebar = col4;
-            space = ceil(noRebar / 2) - 1;
-            clearance = space * .05;
-        end
 
-%         diff = b - 2 * cover - clearance - noRebar * (phiRebar / 1000);
-%         while diff < 0
-%              b = b + .05;
-%              diff = b - 2 * cover - clearance - .02 - noRebar * (phiRebar / 1000); %* reinfSol(i,8) 
-%         end
-
-        bOh = b / h;
-        while bOh > .8 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        bOh = b / h ;
+        while bOh > .8
             h = h + .05;
             bOh = b / h;
         end
@@ -92,24 +89,22 @@ while ratio > 1.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         d = h - (cover + .02);
         reinfPerc = col6 * fyd / (b * d * fcd);
         redBendMom = interp1(abaco(:,2).', abaco(:,1).', max([.004, reinfPerc]));
-        M_Rd = redBendMom * b * d^2 * fcd *1000;
-$$$$
-        redBendMom = M_Ed / (b * d^2 * fcd * 1000);
-        reinfPerc = interp1(abaco(:,1).',abaco(:,2).',max([.005, redBendMom]));
-        reinfAreaAux = reinfPerc * b * d * fcd / fyd;
-        reinfArea = max([reinfAreaAux, .26 * fctm * b * d / fyk, .0013 * b * d]);
-    
+        M_Rd = redBendMom * b * d^2 * fcd *1000 ;
     end
 
-    final_h = h;
+    
+    final_h = h ;
     ratio = final_h / start_h;
-    col2 = h;
-    col3 = b;
-    h = ceil((final_h * .2 + start_h * .8) * 20) / 20;
-    start_h = h;
+    col2 = h ;
+    col3 = b ;
+    h = ceil((final_h * .2 + start_h * .8) * 20) / 20 ;
+    start_h = h ;
 
 end
+
+
 %col11 = col6 * col2 - 2 * (cover + .02)) * fyd * 1000;
+
 
 %stirrups
 z = h - 2 * (cover + .02);  %approximated 
@@ -141,3 +136,5 @@ col10 = shearReinforce(minIndexS, 4);
 %     ratio redAxial redBendMom reinfArea reinfAreaAux reinfPerc rowz space start_h z abaco
 % % adicionar estribos para garantir amarração de 150mm
 % %SB7zr4RPp
+
+

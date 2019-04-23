@@ -1,4 +1,4 @@
-function [b, noRebar, phiRebar, phiShear, spacingShear] = columnDesignEC2(fck, fyk , cover, N_Axial, My_h, Mz_b, b_input)
+function [b, noRebar, phiRebar, areaRebar, phiShear, spacingShear] = columnDesignEC2(fck, fyk , cover, N_Axial, My_h, Mz_b, b_input)
 
 %data = 'dataColumns.csv' ; %input('Filename: ');
 %unsData = importdata(data);
@@ -14,9 +14,9 @@ fyd = fyk / 1.15;
 %longitudinal reinforcement
 
 if nargin == 6
-    b = max(.2, round(sqrt(N_Axial / (fcd * 1000)) * 20)/20);
+    b = max([.2, round(sqrt(N_Axial / (fcd * 1000)) * 20)/20]);
 else
-    b = b_input
+    b = b_input ;
 end
 
 diff = -1;
@@ -49,7 +49,8 @@ while diff < 0
     [minDiff, minIndex] = min(diffAux);
     noRebar = longReinforce(minIndex,2);
     phiRebar = longReinforce(minIndex,1);
-
+    areaRebar = longReinforce(minIndex,3);
+    
     diff = b - 2 * (cover + .02) - (phiRebar/1000 * (noRebar/4)) - (max([.02, phiRebar/1000]) * (noRebar/4 - 1));
     b = b + .05;
 end
