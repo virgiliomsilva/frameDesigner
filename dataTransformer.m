@@ -1,4 +1,4 @@
-%function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ()
+function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ()
 %% IMPORT DATA
 unsData = importdata('data\dataset.csv');
 element = importdata('data\connectivity.csv');
@@ -62,8 +62,6 @@ for i = 1 : noBars
         element(i, 4) = 2;
     elseif normVect == [0, 0, 1]
         element(i, 4) = 3;
-    else
-        display(normVect) %element(i, 5) = normVect
     end
 end
 
@@ -104,6 +102,8 @@ for j = 1 : size(element,1)
         clear auxAux dir1 dir2 dir3;
 	end
 end
+
+
 
 %% beams ON beams %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%new block of code   
 %precedencia de beams para aqueles que intersetam middle way
@@ -211,7 +211,7 @@ AA = setxor(beamDesiOrd, anoAuxBlock);
 BB = setxor(AA,barsOfBeams(:,1));
 BB(BB(:,1) == 0,:) = [] ;
 beamDesiOrd = [beamDesiOrd, BB'];
-%% get the load envelope for each BEAM
+%% get the load envelope for each BEAM and COLUMN
 row = 1; rowz = 1;
 DataDesign = zeros(size(unique(finalData(:, 1)), 1) + 1, 7);
 for j = unique(finalData(:, 1)).'
@@ -228,6 +228,55 @@ for j = unique(finalData(:, 1)).'
     row = 1;
 end
 
+%% beams first and last node and length
+auxVec1 = [];
+auxVec2 = [];
+auxVec3 = [];
+fakeBeams = [];
+
+for i = 1 : size(beamDesiOrd,2) % talvz  acrscentar as barras dos pilares
+    auxVec1 = [auxVec1, beamDesiOrd(1,i)];
+    
+    for j = 1 : noTimesNaming %bars of i beam
+        if j <= size(auxVec1,2)
+        iniBar = barsOfBeams(barsOfBeams(:,2) == auxVec1(1,j),1);
+        auxVec1 = [auxVec1, iniBar];
+        end
+    end
+    
+    for k = 1 : size(auxVec1,2) % nodes of those bars
+       nodz = element(element(:,1) == auxVec1(1,k),[2 3]);
+       auxVec2 = [auxVec2, nodz] ;
+    end
+    auxVec2 = auxVec2' ;
+    auxVec2 = unique(auxVec2, 'rows') ;
+    auxVec2 = auxVec2' ;
+    
+    for v = 1 : size(auxVec2,2)
+        auxVec3 = [auxVec3; nodes(nodes(:,1) == auxVec2(1,v),[1:4])];
+    end
+    
+    [maxX maxXind]= max(auxVec3(:,2));
+    [maxY maxYind]= max(auxVec3(:,3));
+  %  [maxZ maxZind]= max(auxVec3(:,4));
+    [minX minXind]= min(auxVec3(:,2));
+    [minY minYind]= min(auxVec3(:,3));
+ %   [minZ minZind]= min(auxVec3(:,4));
+    if maxX == minX
+        beamLen = maxY - minY;
+        nodeI = auxVec3(minYind, 1);
+        nodeJ = auxVec3(maxYind, 1);
+    elseif maxY == minY
+        beamLen = maxX - minX;
+        nodeI = auxVec3(minXind, 1);
+        nodeJ = auxVec3(maxXind, 1);
+    end
+    
+    fakeBeams = [fakeBeams; [beamDesiOrd(1,i) nodeI nodeJ beamLen]];
+    auxVec1 = [];
+    auxVec2 = [];
+    auxVec3 = [];
+end
 %% bars of the same column %% zero efficiency writes the same line as the
 %same number of stories
 % PROBLEM CASE: column missing in some stories are not the same column AKA

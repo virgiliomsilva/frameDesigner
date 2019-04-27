@@ -1,7 +1,7 @@
 %BEAM DESIGN
-% clear
-% clc
-% tic
+clear
+%clc
+tic
 %% import data and inputs
 
 %data = 'dataBeams.csv' ; %input('Filename: ');%%%%%%%%%%%%%%%%%
@@ -98,11 +98,11 @@ for i = 1 : noBars
             if reinfSolu(i,4) <= 4
                 noRebar = reinfSolu(i,4);
                 space = noRebar - 1;
-                clearance = noRebar * .05;
+                clearance = noRebar * .04;
             else
                 noRebar = reinfSolu(i,4);
                 space = ceil(noRebar / 2) - 1;
-                clearance = space * .05;
+                clearance = space * .04;
             end
             
             diff = b - 2 * cover - clearance - noRebar * (phiRebar / 1000);
@@ -171,109 +171,109 @@ clear Asw_s b bOh clearance d diff diffAuxL diffAuxS final_h h i j k M_Ed ...
 %SB7zr4RPp
 %% EC8 design
 
-% roMin = .5 * fctm / fyk ;
-% sAvaila = unique(shearReinforce(:,3));
-% for i = 1: noBars
-%     %long rebar
-%     reinfAreaEC8 = roMin * reinfSolu(i,2) * reinfSolu(i,3);
-%     if reinfAreaEC8 > reinfSolu(i,6)
-%         for j = 1 : size(longReinforce,1)
-%             if longReinforce(j,3) - reinfAreaEC8 > 0
-%                 diffAux(j,1) = longReinforce(j,3) - reinfAreaEC8;
-%             else
-%                 diffAux(j,1) = 1000;
-%             end
-%         end
-%         [minDiff, minIndexA] = min(diffAux);
-%         
-%         if longReinforce(minIndexA,3) > reinfSolu(i, 6)
-%             reinfSolu(i, 12) = longReinforce(minIndexA, 2);
-%             reinfSolu(i, 13) = longReinforce(minIndexA, 1);
-%             reinfSolu(i, 14) = longReinforce(minIndexA, 3);
-%         else
-%             reinfSolu(i, 12) = reinfSolu(i, 4);
-%             reinfSolu(i, 13) = reinfSolu(i, 5);
-%             reinfSolu(i, 14) = reinfSolu(i, 6);
-%         end
-%     else
-%         reinfSolu(i, 12) = reinfSolu(i, 4);
-%         reinfSolu(i, 13) = reinfSolu(i, 5);
-%         reinfSolu(i, 14) = reinfSolu(i, 6);
-%     end
-%     reinfSolu(i, 15) = reinfSolu(i, 14)/ reinfSolu(i, 6) - 1; %increase of steel area in %
-%     
-%     %stirrups DC3
-%     sMatrix = [0 reinfSolu(i, 8); 1 reinfSolu(i, 2) / 4; 2 reinfSolu(i, 7) * .024; 3 .008 * reinfSolu(i, 5)];
-%     [sMin sIndex] = min(sMatrix(:,2));
-%     reinfSolu(i, 21) = sMatrix(sIndex, 1);
-%     for h = 1 : 7
-%         if sAvaila(h) - sMatrix(sIndex,2) <= 0
-%             anotherMatrix(i,1) = sAvaila(h) - sMatrix(sIndex,2);
-%         else
-%             anotherMatrix(i,1) = -1000;
-%         end
-%     end
-%     
-%     [sMaxReal sIndexReal] = max(anotherMatrix);
-%     
-%     z = reinfSolu(i, 2) - 2 * (cover + .02);
-%     sw = sAvaila(sIndexReal);
-%     Asw_s = max(reinfSolu(i,3) * .08 * sqrt(fck) / fyk, finalData(i, 4) / (z * fywd * 1000 * 2.5));
-%         
-%     for k = 1 : size(shearReinforce,1)
-%         if shearReinforce(k,4) - Asw_s > 0 & shearReinforce(k,3) == sw
-%             diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
-%         else
-%             diffAuxS(k,1) = 1000;
-%         end
-%     end
-%     
-%     [minDiffS, minIndexS] = min(diffAuxS);
-%     reinfSolu(i,17) = shearReinforce(minIndexS, 1);
-%     reinfSolu(i,18) = shearReinforce(minIndexS, 3);
-%     reinfSolu(i,19) = shearReinforce(minIndexS, 2);
-%     reinfSolu(i,20) = shearReinforce(minIndexS, 4);
-%     reinfSolu(i,22) = reinfSolu(i,20) / reinfSolu(i,10) - 1;
-%     
-%   
-%     %stirrups DC2
-%     sMatrix = [0 reinfSolu(i, 8); 1 reinfSolu(i, 2) / 4; 2 reinfSolu(i, 7) * .03; 3 .012 * reinfSolu(i, 5)];
-%     [sMin sIndex] = min(sMatrix(:,2));
-%     reinfSolu(i, 28) = sMatrix(sIndex, 1);
-%     for h = 1 : 7
-%         if sAvaila(h) - sMatrix(sIndex,2) <= 0
-%             anotherMatrix(i,1) = sAvaila(h) - sMatrix(sIndex,2);
-%         else
-%             anotherMatrix(i,1) = -1000;
-%         end
-%     end
-%     
-%     [sMaxReal sIndexReal] = max(anotherMatrix);
-%     
-%     z = reinfSolu(i, 2) - 2 * (cover + .02);
-%     sw = sAvaila(sIndexReal);
-%     Asw_s = max(reinfSolu(i,3) * .08 * sqrt(fck) / fyk, finalData(i, 4) / (z * fywd * 1000 * 2.5));
-%         
-%     for k = 1 : size(shearReinforce,1)
-%         if shearReinforce(k,4) - Asw_s > 0 & shearReinforce(k,3) == sw
-%             diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
-%         else
-%             diffAuxS(k,1) = 1000;
-%         end
-%     end
-%     
-%     [minDiffS, minIndexS] = min(diffAuxS);
-%     reinfSolu(i,24) = shearReinforce(minIndexS, 1);
-%     reinfSolu(i,25) = shearReinforce(minIndexS, 3);
-%     reinfSolu(i,26) = shearReinforce(minIndexS, 2);
-%     reinfSolu(i,27) = shearReinforce(minIndexS, 4);
-%     reinfSolu(i,29) = reinfSolu(i,27) / reinfSolu(i,10) - 1;
-% end
+roMin = .5 * fctm / fyk ;
+sAvaila = unique(shearReinforce(:,3));
+for i = 1: noBars
+    %long rebar
+    reinfAreaEC8 = roMin * reinfSolu(i,2) * reinfSolu(i,3);
+    if reinfAreaEC8 > reinfSolu(i,6)
+        for j = 1 : size(longReinforce,1)
+            if longReinforce(j,3) - reinfAreaEC8 > 0
+                diffAux(j,1) = longReinforce(j,3) - reinfAreaEC8;
+            else
+                diffAux(j,1) = 1000;
+            end
+        end
+        [minDiff, minIndexA] = min(diffAux);
+        
+        if longReinforce(minIndexA,3) > reinfSolu(i, 6)
+            reinfSolu(i, 12) = longReinforce(minIndexA, 2);
+            reinfSolu(i, 13) = longReinforce(minIndexA, 1);
+            reinfSolu(i, 14) = longReinforce(minIndexA, 3);
+        else
+            reinfSolu(i, 12) = reinfSolu(i, 4);
+            reinfSolu(i, 13) = reinfSolu(i, 5);
+            reinfSolu(i, 14) = reinfSolu(i, 6);
+        end
+    else
+        reinfSolu(i, 12) = reinfSolu(i, 4);
+        reinfSolu(i, 13) = reinfSolu(i, 5);
+        reinfSolu(i, 14) = reinfSolu(i, 6);
+    end
+    reinfSolu(i, 15) = reinfSolu(i, 14)/ reinfSolu(i, 6) - 1; %increase of steel area in %
+    
+    %stirrups DC3
+    sMatrix = [0 reinfSolu(i, 8); 1 reinfSolu(i, 2) / 4; 2 reinfSolu(i, 7) * .024; 3 .008 * reinfSolu(i, 5)];
+    [sMin sIndex] = min(sMatrix(:,2));
+    reinfSolu(i, 21) = sMatrix(sIndex, 1);
+    for h = 1 : 7
+        if sAvaila(h) - sMatrix(sIndex,2) <= 0
+            anotherMatrix(i,1) = sAvaila(h) - sMatrix(sIndex,2);
+        else
+            anotherMatrix(i,1) = -1000;
+        end
+    end
+    
+    [sMaxReal sIndexReal] = max(anotherMatrix);
+    
+    z = reinfSolu(i, 2) - 2 * (cover + .02);
+    sw = sAvaila(sIndexReal);
+    Asw_s = max(reinfSolu(i,3) * .08 * sqrt(fck) / fyk, finalData(i, 4) / (z * fywd * 1000 * 2.5));
+        
+    for k = 1 : size(shearReinforce,1)
+        if shearReinforce(k,4) - Asw_s > 0 & shearReinforce(k,3) == sw
+            diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
+        else
+            diffAuxS(k,1) = 1000;
+        end
+    end
+    
+    [minDiffS, minIndexS] = min(diffAuxS);
+    reinfSolu(i,17) = shearReinforce(minIndexS, 1);
+    reinfSolu(i,18) = shearReinforce(minIndexS, 3);
+    reinfSolu(i,19) = shearReinforce(minIndexS, 2);
+    reinfSolu(i,20) = shearReinforce(minIndexS, 4);
+    reinfSolu(i,22) = reinfSolu(i,20) / reinfSolu(i,10) - 1;
+    
+  
+    %stirrups DC2
+    sMatrix = [0 reinfSolu(i, 8); 1 reinfSolu(i, 2) / 4; 2 reinfSolu(i, 7) * .03; 3 .012 * reinfSolu(i, 5)];
+    [sMin sIndex] = min(sMatrix(:,2));
+    reinfSolu(i, 28) = sMatrix(sIndex, 1);
+    for h = 1 : 7
+        if sAvaila(h) - sMatrix(sIndex,2) <= 0
+            anotherMatrix(i,1) = sAvaila(h) - sMatrix(sIndex,2);
+        else
+            anotherMatrix(i,1) = -1000;
+        end
+    end
+    
+    [sMaxReal sIndexReal] = max(anotherMatrix);
+    
+    z = reinfSolu(i, 2) - 2 * (cover + .02);
+    sw = sAvaila(sIndexReal);
+    Asw_s = max(reinfSolu(i,3) * .08 * sqrt(fck) / fyk, finalData(i, 4) / (z * fywd * 1000 * 2.5));
+        
+    for k = 1 : size(shearReinforce,1)
+        if shearReinforce(k,4) - Asw_s > 0 & shearReinforce(k,3) == sw
+            diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
+        else
+            diffAuxS(k,1) = 1000;
+        end
+    end
+    
+    [minDiffS, minIndexS] = min(diffAuxS);
+    reinfSolu(i,24) = shearReinforce(minIndexS, 1);
+    reinfSolu(i,25) = shearReinforce(minIndexS, 3);
+    reinfSolu(i,26) = shearReinforce(minIndexS, 2);
+    reinfSolu(i,27) = shearReinforce(minIndexS, 4);
+    reinfSolu(i,29) = reinfSolu(i,27) / reinfSolu(i,10) - 1;
+end
+
+clear anotherAux auxIndex auxMin cover diffAuxL fcd fck fctm fyd fyk fywd...
+    i j k longReinforce minDiff minIndexA noBars noCol noRow reinfAreaEC8...
+    roMin sAvaila sIndex sMatrix sMatrix2 sMin shearReinforce diffAux diffAuxS...
+    h anotherMatrix minDiffS minIndexS sIndexReal sMaxReal sw z Asw_s
+
 % 
-% clear anotherAux auxIndex auxMin cover diffAuxL fcd fck fctm fyd fyk fywd...
-%     i j k longReinforce minDiff minIndexA noBars noCol noRow reinfAreaEC8...
-%     roMin sAvaila sIndex sMatrix sMatrix2 sMin shearReinforce diffAux diffAuxS...
-%     h anotherMatrix minDiffS minIndexS sIndexReal sMaxReal sw z Asw_s
-% 
-% % 
-% % toc
+% toc

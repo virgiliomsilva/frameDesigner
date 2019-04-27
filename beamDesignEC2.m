@@ -1,4 +1,4 @@
-function [col2, col3, col4, col5, col6, col7, col8, col9, col10] = beamDesignEC2(fck, fyk , cover, M_Ed, Fz_Ed, b_input, h_input)
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = beamDesignEC2(fck, fyk , cover, M_Ed, Fz_Ed, b_input, h_input)
 %%
 % clear
 % clc
@@ -73,9 +73,9 @@ while ratio > 1.05 %%%%%
                 diffAuxL(j,1) = 1000;
             end
             [minDiff, minIndex] = min(diffAuxL);
-            col4 = longReinforce(minIndex,2);
-            col5 = longReinforce(minIndex,1);
-            col6 = longReinforce(minIndex,3);
+            longReinfNo = longReinforce(minIndex,2);
+            longReinfPhi = longReinforce(minIndex,1);
+            longReinfArea = longReinforce(minIndex,3);
             %check asmax
         end
 
@@ -87,7 +87,7 @@ while ratio > 1.05 %%%%%
         end
 
         d = h - (cover + .02);
-        reinfPerc = col6 * fyd / (b * d * fcd);
+        reinfPerc = longReinfArea * fyd / (b * d * fcd);
         redBendMom = interp1(abaco(:,2).', abaco(:,1).', max([.004, reinfPerc]));
         M_Rd = redBendMom * b * d^2 * fcd *1000 ;
     end
@@ -95,8 +95,8 @@ while ratio > 1.05 %%%%%
     
     final_h = h ;
     ratio = final_h / start_h;
-    col2 = h ;
-    col3 = b ;
+    sec_h = h ;
+    sec_b = b ;
     h = ceil((final_h * .2 + start_h * .8) * 20) / 20 ;
     start_h = h ;
 
@@ -108,7 +108,7 @@ end
 
 %stirrups
 z = h - 2 * (cover + .02);  %approximated 
-Asw_s = max(col3 * .08 * sqrt(fck) / fyk, Fz_Ed / (z * fywd * 1000 * 2.5)); %p.100 %9.4 '+' 9.5 EC2 %assuming cot(theta) = 2.5
+Asw_s = max(sec_b * .08 * sqrt(fck) / fyk, Fz_Ed / (z * fywd * 1000 * 2.5)); %p.100 %9.4 '+' 9.5 EC2 %assuming cot(theta) = 2.5
 for k = 1 : size(shearReinforce,1)
     if shearReinforce(k,4) - Asw_s > 0 %& (mod(shearReinforce(k,2),2) == mod(space + 1,2) | mod(shearReinforce(k,2) / 2,2) == mod(space + 1,2))
         diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
@@ -117,10 +117,10 @@ for k = 1 : size(shearReinforce,1)
     end
 end
 [minDiffS, minIndexS] = min(diffAuxS,[],1);
-col7 = shearReinforce(minIndexS, 1);
-col8 = shearReinforce(minIndexS, 3);
-col9 = shearReinforce(minIndexS, 2);
-col10 = shearReinforce(minIndexS, 4);
+shearReinfPhi = shearReinforce(minIndexS, 1);
+shearReinfSpac = shearReinforce(minIndexS, 3);
+shearReinfLoops = shearReinforce(minIndexS, 2);
+shearReinfArea = shearReinforce(minIndexS, 4);
 
 % redAxial = finalData(i, 2) / (reinfSolu(i, 2) * reinfSolu(i, 3) * fcd * 1000);
 % if redAxial > .1

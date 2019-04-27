@@ -2,9 +2,9 @@
 clear
 clc
 tic
-[barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ();
 
-% (fck, fyk , cover, N_Axial, My_h, Mz_b, b_input)
+[barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ();
+
 fck = 25 ;
 fyk = 500 ;
 cover = .035 ;
@@ -51,23 +51,23 @@ clear areaRebar b bar columnsAux columnsAux2 i indexMax indexMin j jj k ...
 %% beams
 
 beams = [];
-auxVec = [];
+auxVec1 = [];
 auxVec2 = [];
 auxVec3 = [];
 auxVec4 = [];
 auxBlock = element(element(:,4) == 3, :);
 for i = 1 : size(beamDesiOrd,2)
-    auxVec = [auxVec, beamDesiOrd(1,i)];
+    auxVec1 = [auxVec1, beamDesiOrd(1,i)];
     
     for j = 1 : noTimesNaming %bars of i beam
-        if j <= size(auxVec,2)
-        iniBar = barsOfBeams(barsOfBeams(:,2) == auxVec(1,j),1);
-        auxVec = [auxVec, iniBar];
+        if j <= size(auxVec1,2)
+        iniBar = barsOfBeams(barsOfBeams(:,2) == auxVec1(1,j),1);
+        auxVec1 = [auxVec1, iniBar];
         end
     end
     
-    for k = 1 : size(auxVec,2) % nodes of those bars
-       nodz = element(element(:,1) == auxVec(1,k),[2 3]);
+    for k = 1 : size(auxVec1,2) % nodes of those bars
+       nodz = element(element(:,1) == auxVec1(1,k),[2 3]);
        auxVec2 = [auxVec2, nodz] ;
     end
     auxVec2 = auxVec2' ;
@@ -79,7 +79,7 @@ for i = 1 : size(beamDesiOrd,2)
         iniElem = auxBlock(auxBlock(:,2) == auxVec2(1,jj),1) ;
         auxVec3 = [auxVec3; iniElem] ;
         iniElem = auxBlock(auxBlock(:,3) == auxVec2(1,jj),1) ;
-        auxVec3 = [auxVec3; iniElem] ;
+        auxVec3 = [auxVec3;, iniElem] ;
         %end
     end
     auxVec3 = unique(auxVec3, 'rows') ;
@@ -95,10 +95,10 @@ for i = 1 : size(beamDesiOrd,2)
 
         min_b = min(auxVec4) ;
     end
-%     auxVec = [];
-%     auxVec2 = [];
-%     auxVec3 = [];
-%     auxVec4 = [];
+    auxVec1 = [];
+    auxVec2 = [];
+    auxVec3 = [];
+    auxVec4 = [];
     
     % beam design per se
     bar = beamDesiOrd(1, i) ;
@@ -128,55 +128,40 @@ end
 %beams = unique(beams, 'rows');
 
 clear AuxB auxBlock auxVec auxVec2 auxVec3 auxVec4 b_input bar barsOfBeams ...
-    barsOfColumns beamDesiOrd beamsOnBeams col10 col2 col3 col4 col5 col6 ...
-    col7 col8 col9 cover DataDesign fck fyk Fz_Ed i ii index iniBar ...
-    iniElem j jj k M_Ed min_b nodz noTimesNaming origSize parentBar stories times
+    barsOfColumns beamsOnBeams col10 col2 col3 col4 col5 col6 ...
+    col7 col8 col9 cover fck fyk Fz_Ed i ii index iniBar ...
+    iniElem j jj k M_Ed min_b nodz noTimesNaming origSize parentBar stories times ...
+    % element DataDesign beamDesiOrd
 %%
-auxColumns = unique (columns(:,[2:size(columns,2)]), 'rows');
-sizeColumns = size(columns,2);
-for i = 1 : size(columns,1)
-    for j = 1 : size(auxColumns,1)
-        if columns(i, [2: sizeColumns]) == auxColumns(j, [1:size(auxColumns,2)])
-            columns(i, sizeColumns + 1) = j ;
-        end
-    end
-end
-
-for p = 1 : size(columns,1)
-    columns(p, [8 9]) = element(columns(p,1) == element(:,1),[2 3])
-end
+% auxColumns = unique (columns(:,[2:size(columns,2)]), 'rows');
+% sizeColumns = size(columns,2);
+% for i = 1 : size(columns,1)
+%     for j = 1 : size(auxColumns,1)
+%         if columns(i, [2: sizeColumns]) == auxColumns(j, [1:size(auxColumns,2)])
+%             columns(i, sizeColumns + 1) = j ;
+%         end
+%     end
+% end
+% 
+% for p = 1 : size(columns,1)
+%     columns(p, [8 9]) = element(columns(p,1) == element(:,1),[2 3])
+% end
 
 
 %%
-auxBeams = unique (beams(:,[2:size(beams,2)]), 'rows');
-sizeBeams = size(beams,2);
-for i = 1 : size(beams,1)
-    for j = 1 : size(auxBeams,1)
-        if beams(i, [2: sizeBeams]) == auxBeams(j, [1:size(auxBeams,2)])
-            beams(i, sizeBeams + 1) = j ;
-        end
-    end
-end
-
-for p = 1 : size(beams,1)
-    beams(p, [10 11]) = element(beams(p,1) == element(:,1),[2 3])
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% auxBeams = unique (beams(:,[2:size(beams,2)]), 'rows');
+% sizeBeams = size(beams,2);
+% for i = 1 : size(beams,1)
+%     for j = 1 : size(auxBeams,1)
+%         if beams(i, [2: sizeBeams]) == auxBeams(j, [1:size(auxBeams,2)])
+%             beams(i, sizeBeams + 1) = j ;
+%         end
+%     end
+% end
+% 
+% for p = 1 : size(beams,1)
+%     beams(p, [10 11]) = element(beams(p,1) == element(:,1),[2 3])
+% end
 
 
 toc

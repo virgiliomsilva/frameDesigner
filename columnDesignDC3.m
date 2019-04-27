@@ -1,42 +1,50 @@
-function [b, noRebar, phiRebar, areaRebar, phiShear, spacingShear] = columnDesignEC2(fck, fyk , cover, N_Axial, My_h, Mz_b, b_input)
+function [b, noRebar, phiRebar, areaRebar, phiShear, spacingShear] = columnDesignDC3(fck, fyk , cover, N_Axial, My_h, Mz_b, b_input, h_input, My_DC3, Mz_DC3)
 
 %data = 'dataColumns.csv' ; %input('Filename: ');
 %unsData = importdata(data);
-%abaco = importdata('info\abacusC12_50S500A1_composta.csv');
-abaco = importdata('info\abacusC12_50S500evenDistr.mat');
-longReinforce = importdata('info\steel_column.csv');
+abaco = importdata('info\abacusC12_50S500A1_composta.csv');
+longReinforce = importdata('info\steel_columnEC8.csv');
 shearReinforce = importdata('info\steel_shear.csv');
 
 fcd = fck / 1.5; 
 %fctm = .3 * fck^(2/3);
 fyd = fyk / 1.15;
 %fywd = fyd;
-%% EC 2 Design
+%%
 %longitudinal reinforcement
 
-if nargin == 6
-    b = max([.2, round(sqrt(N_Axial / (fcd * 1000)) * 20)/20]);
-else
-    b = b_input ;
+
+My = max([My_h My_DC3])
+Mz = max([Mz_h Mz_DC3])
+benMom = sqrt(My^2 + Mz^2);
+
+b = b_input
+h = h_input
+
+redAxial = N_Axial / (b * h * fcd * 1000);
+
+while redAxial > .55
+    b = b + .05
+    h = h + .05
 end
 
 diff = -1;
-
 while diff < 0
-    redAxial = N_Axial / ( b^2 * fcd * 1000);
-    benMom = sqrt(My_h^2 + Mz_b^2);
+    redAxial = N_Axial / (b * h * fcd * 1000);
     redBenMom = benMom / (b^3 * fcd * 1000);
+    
     for j = 1 : size(abaco,2)
         mAux(1,j) = abaco(1,j) - redAxial;
     end
     [value col]= min(abs(mAux));
+    
     for k = 1 : size(abaco,1)
         mAux2(k,1) = abaco(k,1) - redBenMom;
     end
     [value row] = min(abs(mAux2));
     reinfPerc = abaco(row, col);
-    Asmin = max([.1 * N_Axial / (fyd * 1000), .002 * b^2]);
-    AsAbacus = reinfPerc * b^2 * fcd / fyd;
+    Asmin = max([.1 * N_Axial / (fyd * 1000), .002 * b * h]);
+    AsAbacus = reinfPerc * b * h * fcd / fyd;
     reinfArea = max(Asmin, AsAbacus * 2);
 
     for j = 1 : size(longReinforce,1)
@@ -74,6 +82,22 @@ end
 
 [value index] = max(auxMatrix);
 spacingShear = sAvaila(index);
+
+%final data
+%reinfSolu(i,1) = finalData(i,1);
+% reinfSolu(i,2) = b;
+% reinfSolu(i,3) = noRebar;
+% reinfSolu(i,4) = phiRebar;
+% 
+% reinfSolu(i,5) = 8;
+% reinfSolu(i,6) = spacingShear;
+
+%reinfSolu(i,8) = longReinforce(minIndex,3) * (b - 2 * (cover + .02)) * fyd * 1000
+
+%reinfSolu(i,8) = longReinforce(minIndex,3) * fyd / (b * b * fcd);
+%  reinfSolu(i,9) = N_Axial / (b * b * fcd * 1000);
+% reinfSolu(i, 10) = My_h / ( b * b * b * fcd * 1000);
+% reinfSolu(i, 11) = Mz_b / ( b * b * b * fcd * 1000);
 
 
        
