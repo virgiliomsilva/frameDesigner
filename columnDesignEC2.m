@@ -2,8 +2,7 @@ function [b, noRebar, phiRebar, areaRebar, phiShear, spacingShear] = columnDesig
 
 %data = 'dataColumns.csv' ; %input('Filename: ');
 %unsData = importdata(data);
-%abaco = importdata('info\abacusC12_50S500A1_composta.csv');
-abaco = importdata('info\abacusC12_50S500evenDistr.mat');
+abaco = importdata('info\abacusC12_50S500A1_composta.csv');
 longReinforce = importdata('info\steel_column.csv');
 shearReinforce = importdata('info\steel_shear.csv');
 
@@ -74,6 +73,22 @@ end
 
 [value index] = max(auxMatrix);
 spacingShear = sAvaila(index);
+
+%final data
+%reinfSolu(i,1) = finalData(i,1);
+% reinfSolu(i,2) = b;
+% reinfSolu(i,3) = noRebar;
+% reinfSolu(i,4) = phiRebar;
+% 
+% reinfSolu(i,5) = 8;
+% reinfSolu(i,6) = spacingShear;
+
+%reinfSolu(i,8) = longReinforce(minIndex,3) * (b - 2 * (cover + .02)) * fyd * 1000
+
+%reinfSolu(i,8) = longReinforce(minIndex,3) * fyd / (b * b * fcd);
+%  reinfSolu(i,9) = N_Axial / (b * b * fcd * 1000);
+% reinfSolu(i, 10) = My_h / ( b * b * b * fcd * 1000);
+% reinfSolu(i, 11) = Mz_b / ( b * b * b * fcd * 1000);
 
 
        

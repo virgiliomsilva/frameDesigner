@@ -1,4 +1,5 @@
-function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = beamDesignEC2(fck, fyk , cover, M_Ed, Fz_Ed, b_input, h_input)
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = ...
+    beamDesignEC2(fck, fyk , cover, M_Ed, Fz_Ed, b_input, h_input)
 %%
 % clear
 % clc

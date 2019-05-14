@@ -1,4 +1,4 @@
-function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories] = dataTransformer ()
+function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes] = dataTransformer ()
 %% IMPORT DATA
 unsData = importdata('data\dataset.csv');
 element = importdata('data\connectivity.csv');
@@ -98,7 +98,6 @@ for j = 1 : size(element,1)
                 barsOfBeams = [barsOfBeams; (dir2(:,1))'] ;
             end
         end
-        
         clear auxAux dir1 dir2 dir3;
 	end
 end
@@ -211,6 +210,13 @@ AA = setxor(beamDesiOrd, anoAuxBlock);
 BB = setxor(AA,barsOfBeams(:,1));
 BB(BB(:,1) == 0,:) = [] ;
 beamDesiOrd = [beamDesiOrd, BB'];
+
+tama = size(beamsOnBeams,1);
+
+for y = 1 : size(BB,1)
+    beamsOnBeams(y+tama,1) = BB(y,1) ;
+end
+
 %% get the load envelope for each BEAM and COLUMN
 row = 1; rowz = 1;
 DataDesign = zeros(size(unique(finalData(:, 1)), 1) + 1, 7);
@@ -228,7 +234,7 @@ for j = unique(finalData(:, 1)).'
     row = 1;
 end
 
-%% beams first and last node and length
+%% beams: first and last node and length
 auxVec1 = [];
 auxVec2 = [];
 auxVec3 = [];
@@ -304,6 +310,6 @@ end
 barsOfColumns = unique(barsOfColumns, 'rows') ;
 %% clear a aStory auxMat auxMax auxNode auxStories barNameAux ... barsOfBeams ...
 %     barsOfColumns bocAux d finalData i ind j k nCol nColNew noBars ...
-%     noCol node_i node_j nodes norm normVect noRow nRow revOrder row ...
+%     noCol node_i node_j norm normVect noRow nRow revOrder row ...
 %     rowz rowzz s sortData unsData vect xBari xCol xi xj yBari yCol yi ...
 %     yj zBari zBarj zi zj

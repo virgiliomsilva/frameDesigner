@@ -1,1 +1,0 @@
-abaco = importdata('info\abacusC12_50S500evenDistr.mat');
