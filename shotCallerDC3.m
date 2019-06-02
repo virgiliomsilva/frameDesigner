@@ -7,7 +7,16 @@
 clear
 clc
 tic
-[barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes] = dataTransformer ();
+
+%[barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes] = dataTransformer ();
+
+fnData = 'data\regular\datasetall.csv' ;
+fnNodes = 'data\regular\nodes.csv' ;
+fnElement = 'data\regular\connectivity.csv' ;
+
+[barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, ...
+    DataDesign, element, noTimesNaming, stories, nodes, cases] = ...
+    dataTransformerNew (fnData, fnElement, fnNodes);
 
 fck = 25 ;
 fyk = 500 ;
@@ -45,7 +54,7 @@ for i = size(beamsOnBeams,1) : -1 : 1
     clear columnMarker savedDim 
 end
 beamsDC3 = unique(beamsDC3,'rows');
-beamsDC3(60,:) = [];                %%%%%%%%%%%%%%%%%%%%%%%%
+%beamsDC3(60,:) = [];                %%%%%%%%%%%%%%%%%%%%%%%%
 
     
 bendingNodes = [];
@@ -303,8 +312,6 @@ end
 
 %%%%%%%%%%%clear
 toc
-
-
 
 
 %%

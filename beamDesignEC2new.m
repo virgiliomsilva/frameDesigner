@@ -1,4 +1,4 @@
-function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd,shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = beamDesignEC2new(fck, fyk , cover, M_Ed, Fz_Ed)
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = beamDesignEC2new(fck, fyk , cover, M_Ed, Fz_Ed)
 abaco = importdata('info\abacusC12_50S500A1.csv');
 longReinforce = importdata('info\steel_beam.csv');
 shearReinforce = importdata('info\steel_shear.csv');

@@ -40,19 +40,21 @@ end
 
 beamsEC2 = unique(beamsEC2,'rows');
 %%%%%%%%
-origSize = size(beamsEC2,1);
-beamsEC2 = [beamsEC2; [barsOfBeams(:,1), zeros(size(barsOfBeams,1) , size(beamsEC2,2)-1)]] ;
-times = 1 ;
-while times <= noTimesNaming
-    for i = (origSize + 1) : size(beamsEC2,1)
-        parentBar = barsOfBeams(barsOfBeams(:,1) == beamsEC2(i,1) , 2) ;
-        index = find(beamsEC2(:,1) == parentBar) ;
-        beamsEC2(i, [2: size(beamsEC2,2)]) = beamsEC2(index, [2: size(beamsEC2,2)]);
-        
-    end
-    times= times + 1;
-end
+if ~isempty(barsOfBeams)
+    origSize = size(beamsEC2,1);
+    beamsEC2 = [beamsEC2; [barsOfBeams(:,1), zeros(size(barsOfBeams,1) , size(beamsEC2,2)-1)]] ;
+    times = 1 ;
+    while times <= noTimesNaming
+        for i = (origSize + 1) : size(beamsEC2,1)
+            parentBar = barsOfBeams(barsOfBeams(:,1) == beamsEC2(i,1) , 2) ;
+            index = find(beamsEC2(:,1) == parentBar) ;
+            beamsEC2(i, [2: size(beamsEC2,2)]) = beamsEC2(index, [2: size(beamsEC2,2)]);
 
+        end
+        times= times + 1;
+    end
+end
 %%%%%%%%
 beamsEC2 = unique(beamsEC2,'rows');
 save('beamsEC2.mat','beamsEC2')
+%save('data\connectivity','element')

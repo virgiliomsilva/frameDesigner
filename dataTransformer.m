@@ -1,14 +1,14 @@
 function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes] = dataTransformer ()
 %% IMPORT DATA
-unsData = importdata('data\dataset.csv');
-element = importdata('data\connectivity.csv');
-nodes = importdata('data\nodes.csv');
+unsData = importdata('data\calcada_da_tapada\dataset.csv');
+element = importdata('data\calcada_da_tapada\connectivity.csv');
+nodes = importdata('data\calcada_da_tapada\nodes.csv');
 
 %% TRANSFORM DATA
 %extract only 'real' data
-[noRow, noCol] = size(unsData.textdata);
-barNameAux = extractBefore(unsData.textdata(2:noRow,:),"/");
-for i = 1 : (noRow - 1)
+[noRow, ~] = size(unsData.data);
+barNameAux = extractBefore(unsData.textdata(2:end,:),"/");
+for i = 1 : noRow
     auxMat(i, 1) = str2double(barNameAux(i, 1));
 end
 sortData = abs([auxMat, unsData.data]);
@@ -17,7 +17,7 @@ sortData = abs([auxMat, unsData.data]);
 row = 1; rowz = 1;
 finalData = zeros(size(unique(sortData(:, 1)), 1), 7);
 for j = unique(sortData(:, 1)).'
-    for i = 1 : (noRow - 1) 
+    for i = 1 : noRow 
         if j == sortData(i, 1)
         auxBlock(row, :) = sortData(i, :);
         row = row + 1;
@@ -65,7 +65,7 @@ for i = 1 : noBars
     end
 end
 
-%% bars to beams
+%% bars TO beams
 barsOfBeams =[];
 for j = 1 : size(element,1)
     for i = [2 3]
@@ -102,8 +102,6 @@ for j = 1 : size(element,1)
 	end
 end
 
-
-
 %% beams ON beams %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%new block of code   
 %precedencia de beams para aqueles que intersetam middle way
 beamsOnBeams =[];
@@ -138,33 +136,36 @@ for j = 1 : size(element,1)
                 beamsOnBeams = [beamsOnBeams; [(dir2(:,1))' , dir1(:,1)']] ;
             end
         end
-        
         clear auxAux dir1 dir2 dir3;
 	end
 end
 
 %% naming
 barsOfBeams = unique(barsOfBeams,'rows');
-noTimesNaming = max(sum([barsOfBeams(:,1);barsOfBeams(:,2)]==[barsOfBeams(:,1);barsOfBeams(:,2)]'));
 
-for i = 1 : noTimesNaming
-    for j = 1 : noBars
-        for k = 1 : size(barsOfBeams,1)
-            if finalData(j,1) == barsOfBeams(k,1)
-                finalData(j,1) = barsOfBeams(k,2);
-                %finalData(j,7) = finalData(j,7) + finalData(finalData(j,7) == barsOfBeams(k,1),7)
+if isempty(barsOfBeams)
+    noTimesNaming = 0;
+    else
+    noTimesNaming = max(sum([barsOfBeams(:,1);barsOfBeams(:,2)]==[barsOfBeams(:,1);barsOfBeams(:,2)]'));
+    for i = 1 : noTimesNaming
+        for j = 1 : noBars
+            for k = 1 : size(barsOfBeams,1)
+                if finalData(j,1) == barsOfBeams(k,1)
+                    finalData(j,1) = barsOfBeams(k,2);
+                    %finalData(j,7) = finalData(j,7) + finalData(finalData(j,7) == barsOfBeams(k,1),7)
+                end
             end
         end
-    end
-    
-    for a = 1 : size(beamsOnBeams,1)
-       for s = 1 : size(beamsOnBeams,2)
-           for d = 1 : size(barsOfBeams)
-               if beamsOnBeams(a,s) == barsOfBeams(d,1)
-                   beamsOnBeams(a,s) = barsOfBeams(d,2);
+
+        for a = 1 : size(beamsOnBeams,1)
+           for s = 1 : size(beamsOnBeams,2)
+               for d = 1 : size(barsOfBeams)
+                   if beamsOnBeams(a,s) == barsOfBeams(d,1)
+                       beamsOnBeams(a,s) = barsOfBeams(d,2);
+                   end
                end
            end
-       end
+        end
     end
 end
 
@@ -174,41 +175,53 @@ beamsOnBeams = unique(beamsOnBeams,'rows') ;
 beamsOnBeams = beamsOnBeams.' ;
 
 %% order of beams to be designed 
+beamDesiOrd = [];
+
 nRow = size(beamsOnBeams,1);
-nCol = size(beamsOnBeams,2);
-nColNew = 3;
-while nColNew > nCol
-    for k = 1 : (nColNew - 1) %% inneficcient rewrites same line
-        for i = 1 : nRow
-            for j = 1 : nRow
-                if beamsOnBeams(i, k+1) == beamsOnBeams(j,1)
-                    beamsOnBeams(i, k+2 ) = beamsOnBeams(j, 2);
-                    %beamsOnBeams(j,:) = [];
+if nRow ~= 0
+    nCol = size(beamsOnBeams,2);
+    nColNew = 3;
+    while nColNew > nCol
+        for k = 1 : (nColNew - 1) %% inneficcient rewrites same line
+            for i = 1 : nRow
+                for j = 1 : nRow
+                    if beamsOnBeams(i, k+1) == beamsOnBeams(j,1)
+                        beamsOnBeams(i, k+2 ) = beamsOnBeams(j, 2);
+                    end
                 end
             end
         end
+        nCol = nColNew;
+        nColNew = size(beamsOnBeams,2);
     end
-    nCol = nColNew;
-    nColNew = size(beamsOnBeams,2);
-end
 
-revOrder = [];
-for i = 1 : size(beamsOnBeams)
-    revOrder = [revOrder, beamsOnBeams(i,:)] ;
-end
-revOrder = unique(revOrder,'stable');
-revOrder = revOrder(revOrder ~= 0) ;
+    revOrder = [];
+    
+    for i = 1 : size(beamsOnBeams)
+        revOrder = [revOrder, beamsOnBeams(i,:)] ;
+    end
 
-beamDesiOrd = [];
-for i = size(revOrder,2): -1 : 1
-    beamDesiOrd = [beamDesiOrd, revOrder(i)] ;
+    revOrder = unique(revOrder,'stable');
+    revOrder = revOrder(revOrder ~= 0) ;
+
+    for i = size(revOrder,2): -1 : 1
+        beamDesiOrd = [beamDesiOrd, revOrder(i)] ;
+    end
+    
+    BB = setxor(AA,barsOfBeams(:,1));
+    
+%else
 end
 
 %single beams
 anoAuxBlock = element(element(:,4) ~= 3, 1);
 AA = setxor(beamDesiOrd, anoAuxBlock);
-BB = setxor(AA,barsOfBeams(:,1));
-BB(BB(:,1) == 0,:) = [] ;
+
+if isempty(barsOfBeams)
+    BB = AA;%setxor(AA,barsOfBeams(:,1));
+end
+
+%BB(BB(:,1) == 0,:) = [] ;
 beamDesiOrd = [beamDesiOrd, BB'];
 
 tama = size(beamsOnBeams,1);
@@ -229,7 +242,7 @@ for j = unique(finalData(:, 1)).'
     end
     auxMax = max(auxBlock,[],1);
     DataDesign(rowz, :) = auxMax;
-    clear auxBlock; % to prevent values of previous bar being there
+    clear auxBlock; % prevent values of previous bar being there
     rowz = rowz + 1;
     row = 1;
 end
