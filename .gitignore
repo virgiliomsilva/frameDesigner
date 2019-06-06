@@ -1,2 +1,5 @@
 *.ini
+.gitattributes
+.git
 apagar.m
+Book.csv

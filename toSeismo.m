@@ -1,11 +1,11 @@
-%% TO SEISMO
-% function [] = toSeismo(columns, beams, nodes, element, stories)
-
-tic
-columns = importdata('columnsEC2.mat');
-beams = importdata('beamsEC2.mat');
-nodes = importdata('data\regular\nodes.csv');
-element = importdata('data\regular\connectivity.csv');
+function [] = toSeismo(columns, beams, nodes, element, stories, fck, fyk, cover)
+% columns = importdata('deprecated\columnsEC2.mat');
+% beams = importdata('deprecated\beamsEC2.mat');
+% nodes = importdata('data\regular\nodes.csv');
+% element = importdata('data\regular\connectivity.csv');
+% fck = 30; fyk = 400; cover= .035;
+%% sections init
+sections = {};
 %% type columns
 columnTypesAux = unique (columns(:,[2:9]),'rows');
 
@@ -15,6 +15,15 @@ infrmFB_column = {};
 for i = 1 : size(columnTypesAux,1)
     infrmFBPH_column(i, [1 : 6]) = {"Column" + i, "Column" + i, 150, 16.67, "None", "0.00"};
     infrmFB_column(i, [1 : 6]) = {"Column" + i, "Column" + i, 5, 150, "None", "0.00"};
+    
+    h = columnTypesAux(i,1);
+    b = columnTypesAux(i,2);
+    rebarPhi = columnTypesAux(i,4);
+    rebarQtd = columnTypesAux(i,3);
+    stirPhi = columnTypesAux(i,7);
+    stirBran = 2; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%columnTypesAux(i,7);
+    stirSpac = columnTypesAux(i,8);
+    sections{end+1} = sectionWriter(["Column" + i], fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac);
 end
 
 writetable(cell2table(infrmFBPH_column), 'toSeismo\02_FBPH_columns.csv','WriteVariableNames',false);
@@ -28,10 +37,21 @@ infrmFB_beam = {};
 for i = 1 : size(beamTypesAux,1)
     infrmFBPH_beam(i, [1 : 6]) = {"Beam" + i, "Beam" + i, 150, 16.67, "None", "0.00"};
     infrmFB_beam(i, [1 : 6]) = {"Beam" + i, "Beam" + i, 5, 150, "None", "0.00"};
+    
+    h = beamTypesAux(i,1);
+    b = beamTypesAux(i,2);
+    rebarPhi = beamTypesAux(i,4);
+    rebarQtd = beamTypesAux(i,3);
+    stirPhi = beamTypesAux(i,7);
+    stirBran = beamTypesAux(i,9);
+    stirSpac = beamTypesAux(i,8);
+    sections{end+1} = sectionWriter(["Beam" + i], fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac);
 end
 
 writetable(cell2table(infrmFBPH_beam), 'toSeismo\02_FBPH_beams.csv','WriteVariableNames',false);
 writetable(cell2table(infrmFB_beam), 'toSeismo\02_FB_beams.csv','WriteVariableNames',false);
+%% sections fin
+writetable(cell2table(sections'), 'toSeismo\01_sections.csv','WriteVariableNames',false);
 %% nodes
 for i = 1 : size(nodes,1)
     nodesSeismo(i,[1:5]) = {nodes(i, 1), nodes(i, 2), nodes(i, 3), nodes(i, 4), "structural"};
@@ -76,4 +96,3 @@ for i = 1 : size(nodes,1)
 end
 
 writetable(cell2table(restraints), 'toSeismo\06_restraints.csv','WriteVariableNames',false);
-toc
