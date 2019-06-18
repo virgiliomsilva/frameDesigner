@@ -1,0 +1,12 @@
+%% COMPATIBILITY FUNCTION
+% given a steel reinforcement pattern (de facto area) the function returns
+% the other possible patterns suitable to merge with the given on
+% function [newComp] = columnCompEC8(token)
+token = 0.00321699100
+tablempa = importdata('info\columnCompatibility.csv');
+
+[~, col] = find(compa == token);
+newComp = compa(:, [col-2 : col]);
+
+%possible diameters
+phiTable = [12, 16, 20, 25, 32];

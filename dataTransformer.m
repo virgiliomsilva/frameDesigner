@@ -1,30 +1,25 @@
 function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, ...
     DataDesign, element, noTimesNaming, stories, nodes, cases] = ...
-    dataTransformerNew (fnData, fnElement, fnNodes)
+    dataTransformer (fnData, fnElement, fnNodes)
 %% TO DELETE
 % tic
 % clear
 % clc
-% %68zh7q
-% % 
-% fnData = 'data\calcada_da_tapada\datasetall.csv' ;
-% fnNodes = 'data\calcada_da_tapada\nodes.csv' ;
-% fnElement = 'data\calcada_da_tapada\connectivity.csv' ;
-
-% % fnData = 'data\regular\datasetall.csv' ;
-% % fnNodes = 'data\regular\nodes.csv' ;
-% % fnElement = 'data\regular\connectivity.csv' ;
+% % %68zh7q
+% % % 
+% % fnData = 'data\calcada_da_tapada\datasetall.csv' ;
+% % fnNodes = 'data\calcada_da_tapada\nodes.csv' ;
+% % fnElement = 'data\calcada_da_tapada\connectivity.csv' ;
 % 
-% % fnData = 'data\trian\datasetall.csv' ;
-% % fnNodes = 'data\trian\nodes.csv' ;
-% % fnElement = 'data\trian\connectivity.csv' ;
-
+% fnData = 'data\regular\datasetall.csv' ;
+% fnNodes = 'data\regular\nodes.csv' ;
+% fnElement = 'data\regular\connectivity.csv' ;
 %% IMPORT DATA
 unsData = importdata(fnData);
 nodes = importdata(fnNodes);
 element = importdata(fnElement);
 
-%clear fnData fnElement fnNodes
+clear fnData fnElement fnNodes
 %% ORGANISE DATA
 allData = []; cases = [];
 
@@ -366,6 +361,6 @@ for i = 1 : size(bocAux,1)
 end                             
 barsOfColumns = unique(barsOfColumns, 'rows') ;
 
-
 clear aStory bocAux i j rowzz xBari xCol yBari yCol zBari zBarj
-%% disp(['** Finished in ', num2str(round(toc,2)), ' secs **']);
+% disp(['** Finished in ', num2str(round(toc,2)), ' secs **']);
+end

@@ -1,0 +1,11 @@
+abacusC12_50S400A1.csv - pure bending, symmetrical reinforcement top and bottom S400
+
+abacusC12_50S500A1.csv - pure bending, symmetrical reinforcement top and bottom S500
+
+abacus_REBAP83_C12_C50_S400.csv - biaxial and axial force, evenly distributed reinforcement area, S400
+
+abacus_REBAP83_C12_C50_S500.csv - biaxial and axial force, evenly distributed reinforcement area, S500
+
+deprecated - abacusC12_50S500A1_composta.csv - bending and axial force, symmetrical reinforcement top and bottom, S500
+
+deprecated - abacusC12_50S500allAratios.csv - pure bending, various combinations of top and bottom reinforcement, S500
