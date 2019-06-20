@@ -55,7 +55,7 @@ if ~exist('maxiter','var')
     maxiter=10;
 end
     
-while (diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
+while diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
     redAxial   = N_Axial / (b * h * fcd * 1000);
     redBenMom1 = Mz_b / (b * h^2 * fcd * 1000);
     redBenMom2 = My_h / (h * b^2 * fcd * 1000);
@@ -94,7 +94,7 @@ end
 sec_h = h - incr;    sec_b = sec_h ;
 
 % M_Rd 
-reinfPercFin = areaRebar * (b*h);%fyd / (b * h * fcd);
+reinfPercFin = areaRebar * fyd / (b * h * fcd);
 redAxialFin = N_Axial / (b * h * fcd * 1000);
 diff = [];
 for i = 0 : .005 : .5

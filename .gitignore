@@ -2,4 +2,6 @@
 .gitattributes
 .git
 apagar.m
-Book.csv
+toSeismo\*.csv
+*.asv
+*.mat
