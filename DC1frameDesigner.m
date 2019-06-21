@@ -1,29 +1,39 @@
 %% DC1frameDesigner
-% function [] = DC1frameDesigner()
+function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
 
 
-clear
-clc
-tic
-disp('Started');
-buildingName = 'regular';
-fnData = ['data\' buildingName '\datasetcalcada.csv'] ;
-fnNodes = ['data\' buildingName '\nodes.csv'] ;
-fnElement = ['data\' buildingName '\connectivity.csv'] ;
-fck = 30;
-fyk = 400;
-cover = .035;
-seismicCases = [3 4 6];
+% clear
+% clc
+% tic
+% disp('Started');
+% buildingName = 'regular';
+% fnData = ['data\' buildingName '\datasetcalcada.csv'] ;
+% fnNodes = ['data\' buildingName '\nodes.csv'] ;
+% fnElement = ['data\' buildingName '\connectivity.csv'] ;
+% fck = 30;
+% fyk = 400;
+% cover = .035;
+% seismicCases = [3 4 6];
 
 
-seismicCasesIdx = find(ismember(cases, seismicCases))
 
 % [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes, cases] = ...
 %     dataTransformer (fnData, fnElement, fnNodes);
+%%
+tic; disp('Started');
+
+fnData = ['data\' buildingName '\dataset.csv'] ;
+fnNodes = ['data\' buildingName '\nodes.csv'] ;
+fnElement = ['data\' buildingName '\connectivity.csv'] ;
+
+loading = waitbar(0,'Reading data'); pause(.5);
+
 [~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
+
+seismicCasesIdx = find(ismember(cases, seismicCases));
 %%
 beams = [];
-loading = waitbar(0,'Initializing beams'); pause(.5);
+close(loading); loading = waitbar(0,'Initializing beams'); pause(.5);
 for i = 1 : length(beamDesiOrd)
     barIndex = find(DataDesign(:,1,1) == beamDesiOrd(i));
     
@@ -56,8 +66,8 @@ for i = 1 : length(beamDesiOrd)
 end
 
 % beams = importdata('beams.mat');
-disp(['Time to design beams: ' num2str(toc)])
-%% tic
+% disp(['Time to design beams: ' num2str(toc)])
+%% 
 close(loading); loading = waitbar(0,'Initializing columns'); pause(1);
 noStories = max(stories(:,1));
 count = 0;
@@ -174,7 +184,7 @@ for i = 1 : size(barsOfColumns,1)
     
     columns = [columns; [barNames, auxColumns]];
     count = count + 1;
-    toc
+%     toc
     loading = waitbar(count / size(barsOfColumns,1),loading,'Columns progress');% pause(1);
     % if count == 2; break; end
 end
@@ -225,22 +235,13 @@ for i = 1 : size(nodes,1)
     else
         auxBendMomY = 0;
     end
-%     auxBendMomX = bendRdZ * 1.3;
-%     auxBendMomY = bendRdY * 1.3;
     increNeed(end+1,:) = [nodes(i,1), max(auxBendMomX, auxBendMomY)];
-%     loading = waitbar(i / (size(nodes,1) * (noStories - 1)),loading,'Comparisons progress');
+    loading = waitbar(i / (size(nodes,1) * (noStories - 1)),loading,'Comparisons progress');
 end
 
-
+close(loading); loading = waitbar(0,'Initializing column re-reinforcement'); pause(1);
 newColumns = [];
-for i = 1 %: size(barsOfColumns,1)
-    %for these bars get the points( points that are in needed and belong to
-    %the column!!
-    %for each bar get the Med
-    % make the sum
-    % while needed > what we have
-    % start from the biggest differente
-    
+for i = 1 : size(barsOfColumns,1)
     % construir tabela
     aux1 = barsOfColumns(i,:);
     for j = 1 : length(aux1)
@@ -261,65 +262,65 @@ for i = 1 %: size(barsOfColumns,1)
     
     % iterations
     while all(table(:,8) >= 0)%houver uma diff positiva
-         [~, index] = max(table(:, 8));
-         improve = table(index, 7) / 2;
-         if max(table(index, 3), table(index, 5)) > improve * 1.2 % if one if more than 60% of total needed just improve the weak one
-             [val, col] = min([table(index, 3), table(index, 5)]);
-             bar = table(index, col * 2);
-             mImprove = table(index, 7) - val;
-             toGive = [bar mImprove];
-         else
-             toGive(:,1) = [table(index, 2); table(index,4)];
-             toGive(:,2) = [improve; improve];
-         end
-         % para a mesma taxa de armadura e sendo quadrados os pilares, a
-         % situação sísmica condicionante para o somatório é quando o
-         % esforço axial é máximo (das combinações sísmicas) pois reduz o
-         % momendo resistente 
-         % se eu dimensionar para o máximo axial e para o momento
-         % necessário, só numa direção (hack: relação dos momentos tem de 
-         % ser dez, desta forma o programa assume só num sentido) 
-         for j = 1 : size(toGive,1)
-             N_axial = max(DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx));
-             My_h = toGive(j, 2);
-             Mz_b = My_h / 10;
-             [columnsRow,~] = find(columns(:,1) == toGive(j,1)) 
-             gWidth = columns(columnsRow, 2);
-             input1 = columns(columnsRow, 4);
-             input2 = columns(columnsRow, 5);
-             g_reinf = columnComp(input1, input2, 'EC8', 'yes');
-             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth, g_reinf);
-                %check sec_h == givenwiddht
-             shearReinfPhi = columns(columnsRow, 9);
-             shearReinfSpac = columns(columnsRow, 10);
-             shearReinfLoops = columns(columnsRow, 11);
-             shearReinfArea =  columns(columnsRow, 12);   
-             finalColumn = [toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea];
-             newColumns = [newColumns; finalColumn];
-         end
+        [~, index] = max(table(:, 8));
+        improve = table(index, 7) / 2;
+        if max(table(index, 3), table(index, 5)) > improve * 1.2 % if one if more than 60% of total needed just improve the weak one
+            [val, col] = min([table(index, 3), table(index, 5)]);
+            bar = table(index, col * 2);
+            mImprove = table(index, 7) - val;
+            toGive = [bar mImprove];
+        else
+            toGive(:,1) = [table(index, 2); table(index,4)];
+            toGive(:,2) = [improve; improve];
+        end
+        % para a mesma taxa de armadura e sendo quadrados os pilares, a
+        % situação sísmica condicionante para o somatório é quando o
+        % esforço axial é máximo (das combinações sísmicas) pois reduz o
+        % momendo resistente
+        % se eu dimensionar para o máximo axial e para o momento
+        % necessário, só numa direção (hack: relação dos momentos tem de
+        % ser dez, desta forma o programa assume só num sentido)
+        for j = 1 : size(toGive,1)
+            N_axial = max(DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx));
+            My_h = toGive(j, 2);
+            Mz_b = My_h / 10;
+            [columnsRow,~] = find(columns(:,1) == toGive(j,1))
+            gWidth = columns(columnsRow, 2);
+            input1 = columns(columnsRow, 4);
+            input2 = columns(columnsRow, 5);
+            g_reinf = columnComp(input1, input2, 'EC8', 'yes');
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth, g_reinf);
+            if sec_h ~= gWidth; disp("After 1.3 re-reinforcement dimensions don't match!"); end   %check sec_h == givenwiddht
+            shearReinfPhi = columns(columnsRow, 9);
+            shearReinfSpac = columns(columnsRow, 10);
+            shearReinfLoops = columns(columnsRow, 11);
+            shearReinfArea = columns(columnsRow, 12);
+            finalColumn = [toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea];
+            newColumns = [newColumns; finalColumn];
+            %update my table!
+            [updateRow, updateCol] = find(table == toGive(j,1));
+            for k = 1 : size(updateCol, 1)
+                table(updateRow(k), [updateCol(k), updateCol(k) + 1]) = [toGive(j, 1), M_Rd];
+            end
+        end
     end
     clear aux1 auxElement table
+    loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress');
 end
 
+close(loading); loading = waitbar(0,'Updating and writing to Seismo'); pause(1);
 for i = 1 : size(newColumns, 1)
     columns(columns(:,1) == newColumns(i,1),:) = newColumns(i,:);
 end
 
-toc
+loading = waitbar(0.5, loading,'Updating and writing to Seismo');
 
 toSeismo(columns(:,[1:12]), beams, nodes, element, stories, fck, fyk, cover)
+
+loading = waitbar(1, loading,'Updating and writing to Seismo');
 
 time = toc;
 minutes = floor(time/60);
 seconds = floor(time - minutes*60);
 disp(['Finished in ' num2str(minutes) ' minutes and ' num2str(seconds) ' seconds.']);
 close(loading);
-
-
-
-
-
-
-
-
-

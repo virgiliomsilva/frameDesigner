@@ -7,7 +7,7 @@ function [] = toSeismo(columns, beams, nodes, element, stories, fck, fyk, cover)
 %% sections init
 sections = {};
 %% type columns
-columnTypesAux = unique (columns(:,[2:11]),'rows');
+columnTypesAux = unique (columns(:,[2:12]),'rows');
 
 infrmFBPH_column = {};
 infrmFB_column = {};
@@ -61,12 +61,12 @@ writetable(cell2table(nodesSeismo), 'toSeismo\03_nodes.csv','WriteVariableNames'
 %% element connectivity
 for i = 1 : size(element,1)
     if element(i,4) == 3
-        [q, sec] = ismember(columns(columns(:,1) == element(i,1), [2:9]), columnTypesAux, 'rows');
+        [q, sec] = ismember(columns(columns(:,1) == element(i,1), [2:12]), columnTypesAux, 'rows');
         px = element(i,2);
         py = element(i,3);
         elemConnectivity(i, [1:6]) = {element(i,1), "Column" + sec, px + "   " + py + "   " + "deg=0.00","0.00   0.00   0.00   0.00   0.00   0.00", [],"-1e20   1e20"};
     else
-        [q, sec] = ismember(beams(beams(:,1) == element(i,1), [2:11]), beamTypesAux, 'rows');
+        [q, sec] = ismember(beams(beams(:,1) == element(i,1), [2:10]), beamTypesAux, 'rows');
         px = element(i,2);
         py = element(i,3);
         elemConnectivity(i, [1:6]) = {element(i,1), "Beam" + sec, px + "   " + py + "   " + "deg=0.00","0.00   0.00   0.00   0.00   0.00   0.00", [],"-1e20   1e20"};
