@@ -1,19 +1,19 @@
 %% DC1 COLUMNS DESIGN FUNCTION
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
-function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea,niter] = DC1columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong,maxiter)%longRebarN, longRebarPh, 
+function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea,niter] = DC1columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong, maxIter)%longRebarN, longRebarPh,
 %% APAGAR
 % clear
 % clc
 % tic
-% 
+%
 % fyk = 500;
 % fck = 30;
 % cover = .035;
 % N_Axial = 900;
 % My_h = 220;
 % Mz_b = 180;
-% givenWidth = 
+% givenWidth =
 %% INFO SELECTION
 if (fyk == 500 & fck > 12 & fck < 50)
     abaco = importdata('info\abacus_REBAP83_C12_C50_S500.mat');
@@ -25,24 +25,24 @@ end
 
 shearReinforce = importdata('info\steel_shear.csv');
 if exist('givenLong', 'var')
-%     if size(givenLong,1) > 1
+    %     if size(givenLong,1) > 1
     longReinforce = givenLong;
-%     else
-%         longReinforce = columnComp(givenLong);
-%     end
+    %     else
+    %         longReinforce = columnComp(givenLong);
+    %     end
 else
-    longReinforce  = importdata('info\steel_columnEC8.csv'); 
+    longReinforce  = importdata('info\steel_columnEC8.csv');
     longReinforce = longReinforce(:,[1:3]);
 end
 
-fcd = fck / 1.5; 
+fcd = fck / 1.5;
 fyd = fyk / 1.15;
 dMax = .03; %maximum aggregate dimension
 %% DIMENSIONS & LONG REBAR
 if exist ('givenWidth','var')
     h = givenWidth;
 else
-    h = .2; 
+    h = .2;
 end
 b = h;
 
@@ -52,9 +52,9 @@ diffe = -1; areaRebar = 2; AsMax = 1; %values to make while loop start
 niter=0;
 
 if ~exist('maxiter','var')
-    maxiter=10;
+    maxIter=10;
 end
-    
+
 while diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
     redAxial   = N_Axial / (b * h * fcd * 1000);
     redBenMom1 = Mz_b / (b * h^2 * fcd * 1000);
@@ -68,7 +68,7 @@ while diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
     
     AsMin = max([.1 * N_Axial / (fyd * 1000), .01 * b * h]);% first condition?? second eurocode 8 otherwise 0.2%
     reinfArea = max([AsMin, AsAbacus]);
-        
+    
     for j = 1 : size(longReinforce,1)
         if longReinforce(j,3) - reinfArea > 0
             diffAux(j) = longReinforce(j,3) - reinfArea;
@@ -76,7 +76,7 @@ while diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
             diffAux(j) = 1000;
         end
     end
-
+    
     [~, minIndex] = min(diffAux);
     noRebar = longReinforce(minIndex,2);
     phiRebar = longReinforce(minIndex,1);
@@ -87,24 +87,24 @@ while diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
     %AsMin = .01 * h * b; %EC8
     
     h = h + incr; b = h; niter = niter+1;
-    if niter == maxiter
+    if niter == maxIter
         error('Max iter reached')
     end
 end
 sec_h = h - incr;    sec_b = sec_h ;
 
-% M_Rd 
+% M_Rd numa direção!!!
 reinfPercFin = areaRebar * fyd / (b * h * fcd);
 redAxialFin = N_Axial / (b * h * fcd * 1000);
 diff = [];
 for i = 0 : .005 : .5
-    reinfPerc = abaco(1, redAxialFin, i);
+    reinfPerc = abaco(10, redAxialFin, i); %10 because on the abacus is the value condisered infinite
     diff = [diff; [i , abs(reinfPercFin - reinfPerc)]];
 end
 
 [~, index1] = min(diff(:, 2));
 redBenMom = (index1 - 1) * .005;
-M_Rd = redBenMom * h * b^2 * fcd * 1000 ; 
+M_Rd = redBenMom * h * b^2 * fcd * 1000 ;
 
 %N_rd
 alpha = 6;
@@ -165,9 +165,9 @@ switch noRebar
             shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 4 6]),:);
         else
             shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [4 6]),:);
-        end  
-            
-    case 24 
+        end
+        
+    case 24
         if halfDist >= 3 * bracingDist
             shearReinforce = shearReinforce(shearReinforce(:,2) == 7,:);
         elseif halfDist < 1.5 * bracingDist

@@ -9,7 +9,7 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition
 % hfAs =  0.000314159 ;%top reinforcement of the slab per meter in squared meters
 % clear
 % clc
-% 
+%
 % fck = 30;
 % fyk = 400;
 % cover = .035;
@@ -27,7 +27,7 @@ end
 longReinforce  = importdata('info\steel_beam.csv'); longReinforce = longReinforce(:, [1:3]);
 shearReinforce = importdata('info\steel_shear.csv');
 
-fcd = fck / 1.5; 
+fcd = fck / 1.5;
 fctm = .3 * fck^(2/3);
 fyd = fyk / 1.15;
 fywd = fyd;
@@ -38,13 +38,13 @@ b = .2;
 incr = .05;
 count = 0; M_Rd = 0;
 while M_Rd < M_Ed || bOh > .8 || longReinfArea > AsMax
-   
+    
     %long rebar starting values
     d = h - (cover + .02);  %approximated
     redBendMom = M_Ed / (b * d^2 * fcd * 1000);
     reinfPerc = interp1(abaco(:,1).',abaco(:,2).',max([.005, redBendMom]),'linear', 1);
     reinfAreaAux = reinfPerc * b * d * fcd / fyd;
-    [reinfArea, roMinCondition] = max([reinfAreaAux, .26*fctm*b*d/fyk, .0013*b*d, .5*fctm/fyk*b*d]); 
+    [reinfArea, roMinCondition] = max([reinfAreaAux, .26*fctm*b*d/fyk, .0013*b*d, .5*fctm/fyk*b*d]);
     % condition 1 - given by the abacus
     % condition 2 - EC2 9.1
     % condition 3 - EC2 9.2.1.1 (9.1)
@@ -63,7 +63,7 @@ while M_Rd < M_Ed || bOh > .8 || longReinfArea > AsMax
             longReinfPhi = longReinforce(minIndex,1);
             longReinfArea = longReinforce(minIndex,3);
         end
-
+        
         if longReinfNo <= 4
             spaces = longReinfNo - 1;
             clearance = spaces * max([longReinfPhi/1000, dMax + .005, .02]);
@@ -71,31 +71,31 @@ while M_Rd < M_Ed || bOh > .8 || longReinfArea > AsMax
             spaces = ceil(longReinfNo / 2) - 1;
             clearance = spaces * max([longReinfPhi/1000, dMax + .005, .02]);
         end
-
+        
         diff = b - 2 * (cover + .01) - clearance - (spaces + 1) * (longReinfPhi / 1000);
         while diff < 0
-             b = b + incr;
-             diff = b - 2 * (cover + .01) - clearance - (spaces + 1) * (longReinfPhi / 1000);
+            b = b + incr;
+            diff = b - 2 * (cover + .01) - clearance - (spaces + 1) * (longReinfPhi / 1000);
         end
-
+        
         d = h - (cover + .02);
         reinfPerc = longReinfArea * fyd / (b * d * fcd);
         redBendMom = interp1(abaco(:,2).', abaco(:,1).', max([.004, reinfPerc]), 'linear', 0);
         M_Rd = redBendMom * b * d^2 * fcd * 1000 ;
     end
-
+    
     sec_h = h ;
     sec_b = b ;
     AsMax = .04 * b * h;
     bOh = b / h ;
     % values for the next iterarion on dimensions
-    h = .25 + (count + 1) * incr; 
+    h = .25 + (count + 1) * incr;
     b = max([floor(.3 * h * 20) / 20, .2]);
     count = count+1;
 end
 %% STIRRUPS
 if exist('given_b', 'var'); sec_b = given_b; end
-if exist('given_h', 'var'); sec_h = given_h; end    
+if exist('given_h', 'var'); sec_h = given_h; end
 if exist('longReinfN', 'var'); longReinfNo = longReinfN; end
 if exist('longReinfPh', 'var'); longReinfPhi = longReinfPh; end
 
@@ -141,7 +141,7 @@ switch longReinfNo
 end
 
 %maximum spacing longitudinal
-d = sec_h - (cover + .02);  %approximated 
+d = sec_h - (cover + .02);  %approximated
 max_spacing = .75 * d; %sl, max
 shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
 
@@ -152,7 +152,7 @@ minNoLegs = floor(extLegsDist / st) + 2;
 shearReinforce(shearReinforce(:,2) < minNoLegs, :) = [];
 
 %solution calculation
-z = sec_h - 2 * (cover + .02);  %approximated 
+z = sec_h - 2 * (cover + .02);  %approximated
 Asw_s = max(sec_b * .08 * sqrt(fck) / fyk, Fz_Ed / (z * fywd * 1000 * 2.5)); %p.100 %9.4 '+' 9.5 EC2 %assuming cot(theta) = 2.5
 %acho que está bem, mas confirmar com o fluxograma novamente: MODELAÇÃO E
 %DIMENSIONAMENTO ... p.82
@@ -170,3 +170,4 @@ shearReinfSpac = shearReinforce(minIndexS, 3);
 shearReinfLoops = shearReinforce(minIndexS, 2);
 shearReinfArea = shearReinforce(minIndexS, 4);
 V_Rd = min(shearReinfArea * z * (fywd * 1000 * .8) * 2.5 / shearReinfSpac, 1 * sec_b * z * .6 * fcd * 1000/ (2.5)); %de acordo com p.100
+end

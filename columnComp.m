@@ -4,8 +4,9 @@
 % Pattern may be inserted as total area or number of long reinforcement
 % rods and phi;
 % Flag inputs may be 'EC2' or 'EC8' 
-function [newComp] = columnComp(input1, input2, input3)
-if nargin == 2 
+% Input4 may be inserted to eleiminate possibilities with lesser area
+function [newComp] = columnComp(input1, input2, input3, input4)
+if nargin == 2
     %input1 area  %input2 flag
     if strcmpi(input2, 'EC8')
         table = importdata('info\steel_columnEC8.csv');
@@ -17,7 +18,7 @@ if nargin == 2
     [row,~] = find(table(:,3) == input1);
     
 elseif nargin == 3
-    %input1 area  %input2 flag
+    %input1 no long reinfo  %input2 phi long reinf %input3 flag
     if strcmpi(input3, 'EC8')
         table = importdata('info\steel_columnEC8.csv');
     elseif strcmpi(input3, 'EC2')
@@ -28,12 +29,38 @@ elseif nargin == 3
     firstIdx = ismember(table(:,2), input1);
     seconIdx = ismember(table(:,1), input2);
     [row,~]  = find(logical(floor(sum([firstIdx, seconIdx],2) / 2)));
-end
     
-if length(row) > 1
-    error('Ambiguous area! Try using 3 inputs')
+elseif nargin == 4 
+    % input1 no long reinfo  %input2 phi long reinf %input3 flag %input4 cutarea
+    % if input 4 exists eliminate possible area below that one
+    if strcmpi(input3, 'EC8')
+        table = importdata('info\steel_columnEC8.csv');
+    elseif strcmpi(input3, 'EC2')
+        table = importdata('info\steel_column.csv');
+    end
+    
+    % get rference pattern
+    firstIdx = ismember(table(:,2), input1);
+    seconIdx = ismember(table(:,1), input2);
+    [row,~]  = find(logical(floor(sum([firstIdx, seconIdx],2) / 2)));
+    % delete rows with a lower area
+    toDel = [];
+    for i = 1 : size(table,1)
+        if table(i,3) < table(row, 3)
+            toDel(1,end+1) = i ;
+        end
+    end
+    table(toDel, :) = [];
+    
+else
+    error('Refactor the inputs!');
 end
-%% 
+
+if length(row) > 1
+    error('Ambiguous area! Try using 3 inputs');
+end
+
+%%
 newComp = [];
 %possible diameters & quantities
 phiTable = [12, 16, 20, 25, 32, 32];
@@ -84,6 +111,7 @@ else
         index = find(phiTable == mainPhi);
         possPhi = phiTable([index-1, index, index+1]);
     else
+        index = find(phiTable == mainPhi);
         possPhi = phiTable([index, index+1]);
     end
     %remove possibilites that are not compatible
@@ -93,4 +121,5 @@ else
     firstIdx = ismember(part2(:,5), phiTable([index, index +1]));
     seconIdx = ismember(part2(:,6), possQtd);
     newComp = [newComp; part2(logical(floor(sum([firstIdx, seconIdx],2) / 2)), [1:3])];
+end
 end

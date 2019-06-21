@@ -7,7 +7,7 @@ function [] = toSeismo(columns, beams, nodes, element, stories, fck, fyk, cover)
 %% sections init
 sections = {};
 %% type columns
-columnTypesAux = unique (columns(:,[2:9]),'rows');
+columnTypesAux = unique (columns(:,[2:11]),'rows');
 
 infrmFBPH_column = {};
 infrmFB_column = {};
@@ -18,18 +18,18 @@ for i = 1 : size(columnTypesAux,1)
     
     h = columnTypesAux(i,1);
     b = columnTypesAux(i,2);
-    rebarPhi = columnTypesAux(i,4);
     rebarQtd = columnTypesAux(i,3);
-    stirPhi = columnTypesAux(i,7);
-    stirBran = 2; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%columnTypesAux(i,7);
-    stirSpac = columnTypesAux(i,8);
+    rebarPhi = columnTypesAux(i,4);
+    stirPhi = columnTypesAux(i,9);
+    stirSpac = columnTypesAux(i,10);
+    stirBran = columnTypesAux(i,11);
     sections{end+1} = sectionWriter(["Column" + i], fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac);
 end
 
 writetable(cell2table(infrmFBPH_column), 'toSeismo\02_FBPH_columns.csv','WriteVariableNames',false);
 writetable(cell2table(infrmFB_column), 'toSeismo\02_FB_columns.csv','WriteVariableNames',false);
 %% type beams
-beamTypesAux = unique (beams(:,[2:11]),'rows');
+beamTypesAux = unique (beams(:,[2:10]),'rows');
 
 infrmFBPH_beam = {};
 infrmFB_beam = {};
@@ -40,11 +40,11 @@ for i = 1 : size(beamTypesAux,1)
     
     h = beamTypesAux(i,1);
     b = beamTypesAux(i,2);
-    rebarPhi = beamTypesAux(i,4);
     rebarQtd = beamTypesAux(i,3);
-    stirPhi = beamTypesAux(i,7);
-    stirBran = beamTypesAux(i,9);
-    stirSpac = beamTypesAux(i,8);
+    rebarPhi = beamTypesAux(i,4);
+    stirPhi = beamTypesAux(i,6);
+    stirSpac = beamTypesAux(i,7);
+    stirBran = beamTypesAux(i,8);
     sections{end+1} = sectionWriter(["Beam" + i], fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac);
 end
 
