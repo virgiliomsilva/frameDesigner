@@ -29,5 +29,5 @@
 % pause(2);
 % close(loading);
 % toc
-table = [1 2 3; 1 3 2]
-[row, col] = find(table == 3)
+
+a = minWidFind(89)

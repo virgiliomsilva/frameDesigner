@@ -20,9 +20,9 @@ for i = 1 : size(columnTypesAux,1)
     b = columnTypesAux(i,2);
     rebarQtd = columnTypesAux(i,3);
     rebarPhi = columnTypesAux(i,4);
-    stirPhi = columnTypesAux(i,9);
-    stirSpac = columnTypesAux(i,10);
-    stirBran = columnTypesAux(i,11);
+    stirPhi = columnTypesAux(i,8);
+    stirSpac = columnTypesAux(i,9);
+    stirBran = columnTypesAux(i,10);
     sections{end+1} = sectionWriter(["Column" + i], fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac);
 end
 

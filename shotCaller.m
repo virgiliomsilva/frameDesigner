@@ -5,7 +5,8 @@ buildingName = 'regular_DC1' ;
 fck = 30 ;
 fyk = 400;
 cover = .035 ;
-seismicCases = [8 9 10 11];
+seismicCases = [24:31];
+% dataTransformer está condicionado!! apagar linha 48
 
 DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
 %% DC2

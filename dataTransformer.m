@@ -11,9 +11,9 @@ function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, ...
 % % fnNodes = 'data\calcada_da_tapada\nodes.csv' ;
 % % fnElement = 'data\calcada_da_tapada\connectivity.csv' ;
 % 
-% fnData = 'data\regular\datasetall.csv' ;
-% fnNodes = 'data\regular\nodes.csv' ;
-% fnElement = 'data\regular\connectivity.csv' ;
+% fnData = 'data\regular_DC1\dataset.csv' ;
+% fnNodes = 'data\regular_DC1\nodes.csv' ;
+% fnElement = 'data\regular_DC1\connectivity.csv' ;
 %% IMPORT DATA
 unsData = importdata(fnData);
 nodes = importdata(fnNodes);
@@ -363,4 +363,4 @@ barsOfColumns = unique(barsOfColumns, 'rows') ;
 
 clear aStory bocAux i j rowzz xBari xCol yBari yCol zBari zBarj
 % disp(['** Finished in ', num2str(round(toc,2)), ' secs **']);
-end
+% end
