@@ -1,5 +1,5 @@
 %% DC1frameDesigner
-function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
+% function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
 
 
 % clear
@@ -11,7 +11,13 @@ function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
 % fyk = 400;
 % cover = .035;
 % seismicCases = [3 4 6];
-
+clear
+clc
+buildingName = 'regular_DC1' ;
+fck = 30 ;
+fyk = 400;
+cover = .035 ;
+seismicCases = [24:31];
 
 
 % [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes, cases] = ...
@@ -57,7 +63,7 @@ for i = 1 : length(beamDesiOrd)
     shearSpac = sAux(conIndex2, 2);
     shearLegs = sAux(conIndex2, 3);
     
-    beams(end+1,:) = [DataDesign(i,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, shearPhi, shearSpac, shearLegs, V_Rd];
+    beams(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, shearPhi, shearSpac, shearLegs, V_Rd];
     waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'Step 2 of 6'); %pause(.5);
 end
 
@@ -193,7 +199,7 @@ for i = 1 : size(barsOfColumns,1)
 end
 %columns = importdata('columns.mat');
 %% 1.3 comparison
-close(loading); loading = waitbar(0,'Initializing bending comparisons','Name', 'Step 4 of 6'); pause(1);
+%close(loading); loading = waitbar(0,'Initializing bending comparisons','Name', 'Step 4 of 6'); pause(1);
 increNeed = [];
 for i = 1 : size(nodes,1)
     if nodes(i, 5) == 0 | nodes(i, 5) == noStories
@@ -221,7 +227,7 @@ for i = 1 : size(nodes,1)
     bendRdZ = 0;
     for j = 1 : length(barsZ)
         [columnRow, ~] = find(columns(:,1) == barsZ(j));
-        bendRdZ = bendRdZ + columns(beamRow, 6);
+        bendRdZ = bendRdZ + columns(columnRow, 6);
     end
     
     %do the sums and comparisons
@@ -239,10 +245,10 @@ for i = 1 : size(nodes,1)
         auxBendMomY = 0;
     end
     increNeed(end+1,:) = [nodes(i,1), max(auxBendMomX, auxBendMomY)];
-    loading = waitbar(i / (size(nodes,1) * (noStories - 1)),loading,'Comparisons progress','Name', 'Step 4 of 6');
+%    loading = waitbar(i / (size(nodes,1) * (noStories - 1)),loading,'Comparisons progress','Name', 'Step 4 of 6');
 end
 
-close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'Step 5 of 6'); pause(1);
+%close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'Step 5 of 6'); pause(1);
 newColumns = [];
 for i = 1 : size(barsOfColumns,1)
     % construir tabela
@@ -308,19 +314,19 @@ for i = 1 : size(barsOfColumns,1)
         end
     end
     clear aux1 auxElement table
-    loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress','Name', 'Step 5 of 6');
+ %   loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress','Name', 'Step 5 of 6');
 end
 
-close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'Step 6 of 6'); pause(1);
+%close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'Step 6 of 6'); pause(1);
 for i = 1 : size(newColumns, 1)
     columns(columns(:,1) == newColumns(i,1),:) = newColumns(i,:);
 end
 
-loading = waitbar(0.5, loading,'Updating and writing to Seismo', 'Step 1 of ','Name', 'Step 6 of 6');
+%loading = waitbar(0.5, loading,'Updating and writing to Seismo', 'Step 1 of ','Name', 'Step 6 of 6');
 
 toSeismo(columns(:,[1:12]), beams, nodes, element, stories, fck, fyk, cover)
 
-loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'Step 6 of 6');
+%loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'Step 6 of 6');
 
 time = toc;
 minutes = floor(time/60);

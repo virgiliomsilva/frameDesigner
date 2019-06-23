@@ -363,4 +363,4 @@ barsOfColumns = unique(barsOfColumns, 'rows') ;
 
 clear aStory bocAux i j rowzz xBari xCol yBari yCol zBari zBarj
 % disp(['** Finished in ', num2str(round(toc,2)), ' secs **']);
-% end
+end
