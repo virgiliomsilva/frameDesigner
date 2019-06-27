@@ -100,32 +100,32 @@ if exist('longReinfN', 'var'); longReinfNo = longReinfN; end
 if exist('longReinfPh', 'var'); longReinfPhi = longReinfPh; end
 
 %minimum stirrups to ensure proper bracing
-codeValue = .15; %bracing distance on code
-realTotalClearance = sec_b - 2 * (cover + .02); %- (spaces + 1) * (longReinfPhi / 1000);
-betweenClearance = realTotalClearance / spaces; %between centroids
-bracingDist = (b - 2 * (cover + .02)) / 2; %in reality, distance to the middle
-switch longReinfNo
-    case {3, 5, 6}
-        if bracingDist > codeValue
-            shearReinforce(shearReinforce(:,2) == 2, :) = [];
-        end
-        
-    case {4, 8}
-        if betweenClearance > codeValue
-            shearReinforce(shearReinforce(:,2) ~= 4, :) = [];
-        else
-            shearReinforce(shearReinforce(:,2) == 3, :) = [];
-            shearReinforce(shearReinforce(:,2) == 5, :) = [];
-        end
-        
-    case {9 , 10}
-        if bracingDist > codeValue
-            shearReinforce(shearReinforce(:,2) == 2, :) = [];
-        elseif bracingDist > codeValue & betweenClearance > codeValue
-            shearReinforce(shearReinforce(:,2) == 2, :) = [];
-            shearReinforce(shearReinforce(:,2) == 3, :) = [];
-        end
-end
+% codeValue = .15; %bracing distance on code
+% realTotalClearance = sec_b - 2 * (cover + .02); %- (spaces + 1) * (longReinfPhi / 1000);
+% betweenClearance = realTotalClearance / spaces; %between centroids
+% bracingDist = (b - 2 * (cover + .02)) / 2; %in reality, distance to the middle
+% switch longReinfNo
+%     case {3, 5, 6}
+%         if bracingDist > codeValue
+%             shearReinforce(shearReinforce(:,2) == 2, :) = [];
+%         end
+%         
+%     case {4, 8}
+%         if betweenClearance > codeValue
+%             shearReinforce(shearReinforce(:,2) ~= 4, :) = [];
+%         else
+%             shearReinforce(shearReinforce(:,2) == 3, :) = [];
+%             shearReinforce(shearReinforce(:,2) == 5, :) = [];
+%         end
+%         
+%     case {9 , 10}
+%         if bracingDist > codeValue
+%             shearReinforce(shearReinforce(:,2) == 2, :) = [];
+%         elseif bracingDist > codeValue & betweenClearance > codeValue
+%             shearReinforce(shearReinforce(:,2) == 2, :) = [];
+%             shearReinforce(shearReinforce(:,2) == 3, :) = [];
+%         end
+% end
 
 %possible loops due to rebar configuration
 shearReinforce(ismember(shearReinforce(:,2), [6 7]), :) = [] ;%no beam configuration support 6 or 7 stirrups

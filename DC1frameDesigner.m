@@ -1,5 +1,5 @@
 %% DC1frameDesigner
-% function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
+function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
 
 
 % clear
@@ -199,7 +199,7 @@ for i = 1 : size(barsOfColumns,1)
 end
 %columns = importdata('columns.mat');
 %% 1.3 comparison
-%close(loading); loading = waitbar(0,'Initializing bending comparisons','Name', 'Step 4 of 6'); pause(1);
+close(loading); loading = waitbar(0,'Initializing bending comparisons','Name', 'Step 4 of 6'); pause(1);
 increNeed = [];
 for i = 1 : size(nodes,1)
     if nodes(i, 5) == 0 | nodes(i, 5) == noStories
@@ -245,10 +245,10 @@ for i = 1 : size(nodes,1)
         auxBendMomY = 0;
     end
     increNeed(end+1,:) = [nodes(i,1), max(auxBendMomX, auxBendMomY)];
-%    loading = waitbar(i / (size(nodes,1) * (noStories - 1)),loading,'Comparisons progress','Name', 'Step 4 of 6');
+   loading = waitbar(i / (size(nodes,1) * (noStories - 1)),loading,'Comparisons progress','Name', 'Step 4 of 6');
 end
 
-%close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'Step 5 of 6'); pause(1);
+close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'Step 5 of 6'); pause(1);
 newColumns = [];
 for i = 1 : size(barsOfColumns,1)
     % construir tabela
@@ -317,16 +317,18 @@ for i = 1 : size(barsOfColumns,1)
  %   loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress','Name', 'Step 5 of 6');
 end
 
-%close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'Step 6 of 6'); pause(1);
+close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'Step 6 of 6'); pause(1);
 for i = 1 : size(newColumns, 1)
     columns(columns(:,1) == newColumns(i,1),:) = newColumns(i,:);
 end
 
-%loading = waitbar(0.5, loading,'Updating and writing to Seismo', 'Step 1 of ','Name', 'Step 6 of 6');
+loading = waitbar(0.5, loading,'Updating and writing to Seismo', 'Step 1 of ','Name', 'Step 6 of 6');
 
 toSeismo(columns(:,[1:12]), beams, nodes, element, stories, fck, fyk, cover)
 
-%loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'Step 6 of 6');
+loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'Step 6 of 6');
+save([buildingName '_columns'],'columns');
+save([buildingName '_beams'],'beams');
 
 time = toc;
 minutes = floor(time/60);

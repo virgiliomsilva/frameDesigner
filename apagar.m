@@ -30,4 +30,26 @@
 % close(loading);
 % toc
 
-a = minWidFind(89)
+% a = minWidFind(89)
+close(loading); loading = waitbar(0,'Initializing columns','Name', 'Step 3 of 6'); pause(1);
+noStories = max(stories(:,1));
+count = 0;
+columns = [];
+for i = 1 : size(barsOfColumns,1)
+    % 1 design individually bars of a column
+    barNames = []; % to append in the end!!!
+    for j = 1 : noStories %design of all bars of a column!
+        barName = barsOfColumns(i,j); barNames = [barNames; barName];
+        barIndex = find(DataDesign(:,1,1) == barName);
+        try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
+        for k = 1 : length(cases)
+            N_axial = DataDesign(barIndex, 2, k);
+            My_h = DataDesign(barIndex, 3, k);
+            Mz_b = DataDesign(barIndex, 4, k);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea];
+        end
+        [~, index] = max(mAux1(:,6));%best iteration for that bar
+        bestIndi(j,:) = mAux1(index,:);%best individual bars of that column
+    end
+    
