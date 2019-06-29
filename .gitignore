@@ -3,5 +3,6 @@
 .git
 apagar.m
 toSeismo\*.csv
+toSave\*.csv
 data\*.csv
 *.asv

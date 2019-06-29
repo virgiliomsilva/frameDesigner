@@ -1,4 +1,4 @@
-function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC2beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh)
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC2beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
     %% INFO SELECTION
     if (fyk == 500 & fck > 12 & fck < 50)
         abaco = importdata('info\abacusC12_50S500A1.csv');
@@ -37,7 +37,6 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition
         %long rebar iterations
         if reinfPerc > 0 && reinfPerc < .8
             for j = 1 : size(longReinforce,1)
-                diffAuxL = zeros
                 if longReinforce(j,3) - reinfArea > 0
                     diffAuxL(j) = longReinforce(j,3) - reinfArea;
                 else
@@ -84,34 +83,6 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition
     if exist('longReinfN', 'var'); longReinfNo = longReinfN; end
     if exist('longReinfPh', 'var'); longReinfPhi = longReinfPh; end
 
-    %minimum stirrups to ensure proper bracing
-    codeValue = .15; %bracing distance on code
-    realTotalClearance = sec_b - 2 * (cover + .02); %- (spaces + 1) * (longReinfPhi / 1000);
-    betweenClearance = realTotalClearance / spaces; %between centroids
-    bracingDist = (b - 2 * (cover + .02)) / 2; %in reality, distance to the middle
-    switch longReinfNo
-        case {3, 5, 6}
-            if bracingDist > codeValue
-                shearReinforce(shearReinforce(:,2) == 2, :) = [];
-            end
-
-        case {4, 8}
-            if betweenClearance > codeValue
-                shearReinforce(shearReinforce(:,2) ~= 4, :) = [];
-            else
-                shearReinforce(shearReinforce(:,2) == 3, :) = [];
-                shearReinforce(shearReinforce(:,2) == 5, :) = [];
-            end
-
-        case {9 , 10}
-            if bracingDist > codeValue
-                shearReinforce(shearReinforce(:,2) == 2, :) = [];
-            elseif bracingDist > codeValue && betweenClearance > codeValue
-                shearReinforce(shearReinforce(:,2) == 2, :) = [];
-                shearReinforce(shearReinforce(:,2) == 3, :) = [];
-            end
-    end
-
     %possible loops due to rebar configuration
     shearReinforce(ismember(shearReinforce(:,2), [6 7]), :) = [] ;%no beam configuration support 6 or 7 stirrups
     switch longReinfNo
@@ -125,11 +96,8 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition
             shearReinforce(shearReinforce(:,2) == 5, :) = [];
     end
 
-    %maximum spacing longitudinal including EC( conditions
+    %maximum spacing longitudinal including EC8 conditions
     d = sec_h - (cover + .02);  %approximated
-%     max_spacing = .75 * d; %sl, max
-%     shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
-%     %maximum spacing regarding EC8 conditions
     dbl = longReinfPhi/1000 ;
     dbw = 8;
     [max_spacing, sCondition8]= min([.75 * d, sec_h/4, 30*dbw, 12*dbl]);
@@ -144,17 +112,32 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition
     minNoLegs = floor(extLegsDist / st) + 2;
     shearReinforce(shearReinforce(:,2) < minNoLegs, :) = [];
 
-    %solution calculation
+    % solution calculation
     z = sec_h - 2 * (cover + .02);  %approximated
-    Asw_s = max(sec_b * .08 * sqrt(fck) / fyk, Fz_Ed / (z * fywd * 1000 * 2.5)); %p.100 %9.4 '+' 9.5 EC2 %assuming cot(theta) = 2.5
 
-    %minimum optimization DIMENSIONAMENTO ... p.82
+    redVed = Fz_Ed / (sec_b * z * 1000);
+    redVrd25 = (.6/4.35) * fck * (1 - fck/250);
+    redVrd1 = (.6/3) * fck * (1 - fck/250);
+
+    if redVrd25 > redVed
+        Asw_s25 = redVed * sec_h / (fywd * 2.5);
+        Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+        Asw_s = max([Asw_sMin, Asw_s25]);
+        theta = acot(2.5);
+    elseif redVrd1 > redVed
+        theta = .5 * asin(redVed / (.20 * fck * (1 - fck/250)));
+        Asw_stheta = redVed * sec_h / (fywd * theta);
+        Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+        Asw_s = max([Asw_sMin, Asw_stheta]);
+    end
+    
+    %minimum optimization for steel usage (p.82)
     diffAuxS = zeros(size(shearReinforce,1),1);
     for k = 1 : size(shearReinforce,1)
-        if shearReinforce(k,4) - Asw_s > 0
+        if (shearReinforce(k,4) - Asw_s) > 0
             diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
         else
-            diffAuxS(k,1) = 1000;
+            diffAuxS(k,1) = 1;
         end
     end
 
@@ -164,10 +147,11 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition
     shearReinfSpac = shearReinforce(minIndexS, 3);
     shearReinfLoops = shearReinforce(minIndexS, 2);
     shearReinfArea = shearReinforce(minIndexS, 4);
-    if shearReinPhi == 8
+    if shearReinfPhi == 8
         sCondition = sCondition8;
-    elseif shearReinPhi == 10
+    elseif shearReinfPhi == 10
         sCondition = sCondition10;
     end
-    V_Rd = min(shearReinfArea * z * (fywd * 1000 * .8) * 2.5 / shearReinfSpac, 1 * sec_b * z * .6 * fcd * 1000/ (2.5)); %de acordo com p.100
+
+    V_Rd = min(shearReinfArea * z * (fywd * 1000) * cot(theta) / shearReinfSpac, 1 * sec_b * z * .6 *(1 - fck/250) * fcd  * 1000 / (cot(theta) + tan(theta)));
 end

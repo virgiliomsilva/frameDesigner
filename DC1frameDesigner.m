@@ -11,13 +11,13 @@ function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases)
 % fyk = 400;
 % cover = .035;
 % seismicCases = [3 4 6];
-clear
-clc
-buildingName = 'regular_DC1' ;
-fck = 30 ;
-fyk = 400;
-cover = .035 ;
-seismicCases = [24:31];
+% clear
+% clc
+% buildingName = 'regular_DC1' ;
+% fck = 30 ;
+% fyk = 400;
+% cover = .035 ;
+% seismicCases = [24:31];
 
 
 % [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes, cases] = ...
@@ -187,7 +187,7 @@ for i = 1 : size(barsOfColumns,1)
                 eval(z) = mean(bestIndiMethod(:,1,z));
             end
             [~, bestDesign]= min(eval);
-            auxColumns = bestIndiMethod([2:end],:,z)
+            auxColumns = bestIndiMethod([2:end],:,bestDesign)
         end
     end
     

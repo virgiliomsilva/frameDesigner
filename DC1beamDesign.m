@@ -2,7 +2,7 @@
 % beams with a maximum dimension of width over height of 80% with equal
 % reinforcement on top and bottom it can design only stirrups given the
 % longitudinal rebar
-function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh)
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
 %% DELETE
 
 % hf = .2 ;%slab/flange depth
@@ -99,34 +99,6 @@ if exist('given_h', 'var'); sec_h = given_h; end
 if exist('longReinfN', 'var'); longReinfNo = longReinfN; end
 if exist('longReinfPh', 'var'); longReinfPhi = longReinfPh; end
 
-%minimum stirrups to ensure proper bracing
-% codeValue = .15; %bracing distance on code
-% realTotalClearance = sec_b - 2 * (cover + .02); %- (spaces + 1) * (longReinfPhi / 1000);
-% betweenClearance = realTotalClearance / spaces; %between centroids
-% bracingDist = (b - 2 * (cover + .02)) / 2; %in reality, distance to the middle
-% switch longReinfNo
-%     case {3, 5, 6}
-%         if bracingDist > codeValue
-%             shearReinforce(shearReinforce(:,2) == 2, :) = [];
-%         end
-%         
-%     case {4, 8}
-%         if betweenClearance > codeValue
-%             shearReinforce(shearReinforce(:,2) ~= 4, :) = [];
-%         else
-%             shearReinforce(shearReinforce(:,2) == 3, :) = [];
-%             shearReinforce(shearReinforce(:,2) == 5, :) = [];
-%         end
-%         
-%     case {9 , 10}
-%         if bracingDist > codeValue
-%             shearReinforce(shearReinforce(:,2) == 2, :) = [];
-%         elseif bracingDist > codeValue & betweenClearance > codeValue
-%             shearReinforce(shearReinforce(:,2) == 2, :) = [];
-%             shearReinforce(shearReinforce(:,2) == 3, :) = [];
-%         end
-% end
-
 %possible loops due to rebar configuration
 shearReinforce(ismember(shearReinforce(:,2), [6 7]), :) = [] ;%no beam configuration support 6 or 7 stirrups
 switch longReinfNo
@@ -151,11 +123,29 @@ extLegsDist = sec_b - 2 * (cover + .005);
 minNoLegs = floor(extLegsDist / st) + 2;
 shearReinforce(shearReinforce(:,2) < minNoLegs, :) = [];
 
-%solution calculation
+% solution calculation
 z = sec_h - 2 * (cover + .02);  %approximated
-Asw_s = max(sec_b * .08 * sqrt(fck) / fyk, Fz_Ed / (z * fywd * 1000 * 2.5)); %p.100 %9.4 '+' 9.5 EC2 %assuming cot(theta) = 2.5
-%acho que está bem, mas confirmar com o fluxograma novamente: MODELAÇÃO E
-%DIMENSIONAMENTO ... p.82
+
+redVed = Fz_Ed / (sec_b * z * 1000);
+redVrd25 = (.6/4.35) * fck * (1 - fck/250);
+redVrd1 = (.6/3) * fck * (1 - fck/250);
+
+if redVrd25 > redVed
+    Asw_s25 = redVed * sec_h / (fywd * 2.5);
+    Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+    Asw_s = max([Asw_sMin, Asw_s25]);
+    theta = acot(2.5);
+elseif redVrd1 > redVed
+    theta = .5 * asin(redVed / (.20 * fck * (1 - fck/250)));
+    Asw_stheta = redVed * sec_h / (fywd * theta);
+    Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+    Asw_s = max([Asw_sMin, Asw_stheta]);
+else
+    display('-----------------------------------------------------------');
+end
+
+%minimum optimization for steel usage (p.82)
+diffAuxS = zeros(size(shearReinforce,1),1);
 for k = 1 : size(shearReinforce,1)
     if shearReinforce(k,4) - Asw_s > 0
         diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
@@ -164,10 +154,12 @@ for k = 1 : size(shearReinforce,1)
     end
 end
 
-[minDiffS, minIndexS] = min(diffAuxS,[],1);
+%output
+[~, minIndexS] = min(diffAuxS,[],1);
 shearReinfPhi = shearReinforce(minIndexS, 1);
 shearReinfSpac = shearReinforce(minIndexS, 3);
 shearReinfLoops = shearReinforce(minIndexS, 2);
 shearReinfArea = shearReinforce(minIndexS, 4);
-V_Rd = min(shearReinfArea * z * (fywd * 1000 * .8) * 2.5 / shearReinfSpac, 1 * sec_b * z * .6 * fcd * 1000/ (2.5)); %de acordo com p.100
+
+V_Rd = min(shearReinfArea * z * (fywd * 1000) * cot(theta) / shearReinfSpac, 1 * sec_b * z * .6 *(1 - fck/250) * fcd  * 1000/ (cot(theta) + tan(theta)));
 end

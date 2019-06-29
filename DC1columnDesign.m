@@ -94,8 +94,8 @@ end
 sec_h = h - incr;    sec_b = sec_h ;
 
 % M_Rd numa direção!!!
-reinfPercFin = areaRebar * fyd / (b * h * fcd);
-redAxialFin = N_Axial / (b * h * fcd * 1000);
+reinfPercFin = areaRebar * fyd / (sec_b * sec_h * fcd);
+redAxialFin = N_Axial / (sec_b * sec_h * fcd * 1000);
 diff = [];
 for i = 0 : .005 : .5
     reinfPerc = abaco(10, redAxialFin, i); %10 because on the abacus is the value condisered infinite
@@ -104,7 +104,7 @@ end
 
 [~, index1] = min(diff(:, 2));
 redBenMom = (index1 - 1) * .005;
-M_Rd = redBenMom * h * b^2 * fcd * 1000 ;
+M_Rd = redBenMom * sec_h * sec_b^2 * fcd * 1000 ;
 
 %N_rd
 alpha = 6;
@@ -114,20 +114,6 @@ N_rd = fcd * (sec_h * sec_b + areaRebar * alpha);
 %maximum spacing
 max_spacing = min([15 * phiRebar/1000, b, .3]) * .6; %evaluating the shear spacing on the critical sections
 shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
-
-%possible loops due to rebar configuration - deprecated due to overlapping
-%to code block "minimum stirrups to ensure proper bracing"
-% switch noRebar
-%     case 8
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 3]),:)
-%     case 12
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 4]),:)
-%     case 16
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 3 4 5]),:)
-%     case 20
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 4 6]),:)
-%     case 24
-% end
 
 %minimum stirrups to ensure proper bracing  - the method herein used is
 %valid to equally spaced rebars

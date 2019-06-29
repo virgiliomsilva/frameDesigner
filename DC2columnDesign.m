@@ -1,7 +1,7 @@
 %% DC2 COLUMNS DESIGN FUNCTION
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
-function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea,niter] = DC2columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong)
+function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC2columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong, Vshear, given_h, longReinfN, longReinfPh)
 %% APAGAR
 % clear
 % clc
@@ -48,7 +48,7 @@ incr = .05;
 %values to make while loop start
 diffe = -1; areaRebar = 2; AsMax = 1; redAxial = 1;
 
-while diffe < 0 | areaRebar > AsMax | redAxial > .65 %| AsMin > areaRebar)%& niter < maxiter
+while diffe < 0 || areaRebar > AsMax || redAxial > .65 %| AsMin > areaRebar)%& niter < maxiter
     redAxial   = N_Axial / (b * h * fcd * 1000);
     redBenMom1 = Mz_b / (b * h^2 * fcd * 1000);
     redBenMom2 = My_h / (h * b^2 * fcd * 1000);
@@ -86,7 +86,7 @@ end
 sec_h = h - incr;    sec_b = sec_h ;
 
 % M_Rd uni axial
-reinfPercFin = areaRebar * fyd / (b * h * fcd);
+reinfPercFin = areaRebar * fyd / (sec_b * sec_h * fcd);
 redAxialFin = N_Axial / (sec_b * sec_h * fcd * 1000);
 diff = [];
 for i = 0 : .005 : .5
@@ -96,35 +96,27 @@ end
 
 [~, index1] = min(diff(:, 2));
 redBenMom = (index1 - 1) * .005;
-M_Rd = redBenMom * h * b^2 * fcd * 1000 ;
+M_Rd = redBenMom * sec_h * sec_b^2 * fcd * 1000 ;
 
 %N_rd
 alpha = 6;
 N_rd = fcd * (sec_h * sec_b + areaRebar * alpha);
 
 %% STIRRUPS
-%maximum spacing
-max_spacing = min([15 * phiRebar/1000, b, .3]) * .6; %evaluating the shear spacing on the critical sections
-shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
+if exist('given_h', 'var'); sec_h = given_h; end
+if exist('longReinfN', 'var'); noRebar = longReinfN; end
+if exist('longReinfPh', 'var'); phiRebar = longReinfPh; end
 
-%possible loops due to rebar configuration - deprecated due to overlapping
-%to code block "minimum stirrups to ensure proper bracing"
-% switch noRebar
-%     case 8
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 3]),:)
-%     case 12
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 4]),:)
-%     case 16
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 3 4 5]),:)
-%     case 20
-%         shearReinforce = shearReinforce(ismember(shearReinforce(:,2), [2 4 6]),:)
-%     case 24
-% end
+
+%maximum spacing
+b0 = sec_h - 2 * cover;
+dblmin = phiRebar / 1000;
+[max_spacing, sCondition]= min([min([15 * phiRebar/1000, b, .3]) * .6, b0/2, .2, 9*dblmin]); %evaluating the shear spacing on the critical sections
+shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
 
 %minimum stirrups to ensure proper bracing  - the method herein used is
 %valid to equally spaced rebars
 bracingDist = .25/2; %bracing distance on code EC8
-spaces = noRebar / 4;
 halfDist = (b - 2 * (cover + .02)) / 2; %distance from corner rebar to the middle of the section
 switch noRebar
     case 8
@@ -169,7 +161,7 @@ switch noRebar
         end
 end
 
-mecVolRatio = 0;
+mecVolRatio = 0; count = 0;
 while mecVolRatio < .05
     [~, minIndexS] = min(shearReinforce(:,4));
     
@@ -181,7 +173,72 @@ while mecVolRatio < .05
     %calculate mechanical volumetric ratio of confining hoops
     pseudoH = sec_h - 2 * cover;
     volConfHoop = shearReinfArea * pseudoH * 2; %accounting for both directions
-    volConcCore = pseudoH ^ 2 - areaRebar;
+    volConcCore = (pseudoH ^ 2 - areaRebar) * shearReinfSpac;
     mecVolRatio  = volConfHoop * fyd / (volConcCore * fcd);
     shearReinforce(minIndexS, :) = [];
+    count = count + 1;
+end
+
+if count > 1; sCondition = 5; end
+
+opposite = pseudoH;
+
+adjacent = 2.5 * opposite;
+intervals = floor(adjacent/shearReinfSpac);
+adjacent = intervals * shearReinfSpac; %corrected
+bigTheta = adjacent / opposite;
+
+adjacent = 1 * opposite;
+intervals = ceil(adjacent/shearReinfSpac);
+adjacent = intervals * shearReinfSpac; %corrected
+smallTheta = adjacent / opposite;
+
+V_Rd = min(shearReinfArea * z * (fywd * 1000 * .8) * smallTheta / shearReinfSpac, 1 * sec_b * z * .6 * fcd * 1000/ (bigTheta));
+
+if exist('Vshear', 'var')
+    Fz_Ed = Vshear;
+    sec_h = given_h;
+    sec_b = sec_h;
+    % solution calculation
+    z = sec_h - 2 * (cover + .02);  %approximated
+    
+    redVed = Fz_Ed / (sec_b * z * 1000);
+    redVrd25 = (.6/4.35) * fck * (1 - fck/250);
+    redVrd1 = (.6/3) * fck * (1 - fck/250);
+    
+    if redVrd25 > redVed
+        Asw_s25 = redVed * sec_h / (fywd * 2.5);
+        Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+        Asw_s = max([Asw_sMin, Asw_s25]);
+        theta = acot(2.5);
+    elseif redVrd1 > redVed
+        theta = .5 * asin(redVed / (.20 * fck * (1 - fck/250)));
+        Asw_stheta = redVed * sec_h / (fywd * theta);
+        Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+        Asw_s = max([Asw_sMin, Asw_stheta]);
+    end
+    
+    %minimum optimization for steel usage (p.82)
+    diffAuxS = zeros(size(shearReinforce,1),1);
+    for k = 1 : size(shearReinforce,1)
+        if (shearReinforce(k,4) - Asw_s) > 0
+            diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
+        else
+            diffAuxS(k,1) = 1;
+        end
+    end
+    
+    %output
+    [~, minIndexS] = min(diffAuxS,[],1);
+    shearReinfPhi = shearReinforce(minIndexS, 1);
+    shearReinfSpac = shearReinforce(minIndexS, 3);
+    shearReinfLoops = shearReinforce(minIndexS, 2);
+    shearReinfArea = shearReinforce(minIndexS, 4);
+    if shearReinfPhi == 8
+        sCondition = sCondition8;
+    elseif shearReinfPhi == 10
+        sCondition = sCondition10;
+    end
+    
+    V_Rd = min(shearReinfArea * z * (fywd * 1000) * cot(theta) / shearReinfSpac, 1 * sec_b * z * .6 *(1 - fck/250) * fcd  * 1000 / (cot(theta) + tan(theta)));
 end
