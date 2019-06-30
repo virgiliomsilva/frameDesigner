@@ -187,7 +187,7 @@ for i = 1 : size(barsOfColumns,1)
                 eval(z) = mean(bestIndiMethod(:,1,z));
             end
             [~, bestDesign]= min(eval);
-            auxColumns = bestIndiMethod([2:end],:,bestDesign)
+            auxColumns = bestIndiMethod(:,[2:end],bestDesign)
         end
     end
     

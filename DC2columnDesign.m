@@ -33,6 +33,7 @@ end
 
 fcd = fck / 1.5;
 fyd = fyk / 1.15;
+fywd = fyd;
 dMax = .03; %maximum aggregate dimension
 %% DIMENSIONS & LONG REBAR
 if exist ('givenWidth','var')
@@ -80,7 +81,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .65 %| AsMin > areaRebar)%& n
         
     redAxial = N_Axial / (b * h * fcd * 1000);
     
-    h = h + incr; b = h; niter = niter+1;
+    h = h + incr; b = h;
 
 end
 sec_h = h - incr;    sec_b = sec_h ;
@@ -193,6 +194,7 @@ intervals = ceil(adjacent/shearReinfSpac);
 adjacent = intervals * shearReinfSpac; %corrected
 smallTheta = adjacent / opposite;
 
+z = sec_h - 2 * (cover + .02);  %approximated
 V_Rd = min(shearReinfArea * z * (fywd * 1000 * .8) * smallTheta / shearReinfSpac, 1 * sec_b * z * .6 * fcd * 1000/ (bigTheta));
 
 if exist('Vshear', 'var')

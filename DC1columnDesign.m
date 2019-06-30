@@ -1,7 +1,7 @@
 %% DC1 COLUMNS DESIGN FUNCTION
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
-function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea,niter] = DC1columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong, maxIter)%longRebarN, longRebarPh,
+function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC1columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong)%longRebarN, longRebarPh,
 %% APAGAR
 % clear
 % clc
@@ -49,7 +49,6 @@ b = h;
 incr = .05;
 
 diffe = -1; areaRebar = 2; AsMax = 1; %values to make while loop start
-niter=0;
 
 if ~exist('maxiter','var')
     maxIter=10;

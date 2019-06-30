@@ -1,5 +1,6 @@
 %% SHOT CALLER
-
+clear
+clc
 fck = 30 ;
 fyk = 400;
 cover = .035 ;
@@ -13,7 +14,7 @@ DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases);
 %
 buildingName = 'regular_DC2' ;
 seismicCases = [24:31];
-DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases);
+DC2frameDesigner(buildingName, fck, fyk, cover, seismicCases);
 %% DC3
 %
 
