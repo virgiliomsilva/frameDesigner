@@ -18,12 +18,12 @@ function [M_Rd] = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial)
     
     diff = zeros(101,2); index = 1;
     for i = 0 : .005 : .5
-        reinfPerc = abaco(10, redAxialFin, i); %10 because on the abacus is the value condisered infinite
+        reinfPerc = abaco(0, redAxialFin, i);
         diff(index, [1 2]) = [i , abs(reinfPercFin - reinfPerc)];
         index = index + 1;
     end
 
     [~, index1] = min(diff(:, 2));
-    redBenMom = (index1 - 1) * .005;
+    redBenMom = diff(index1, 1);
     M_Rd = redBenMom * h * b^2 * fcd * 1000 ;
 end

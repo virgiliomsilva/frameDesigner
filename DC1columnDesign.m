@@ -76,34 +76,32 @@ while diffe < 0 | areaRebar > AsMax %| AsMin > areaRebar)%& niter < maxiter
         end
     end
     
-    [~, minIndex] = min(diffAux);
+    [val, minIndex] = min(diffAux);
+    if val > 1; h = h + incr; b = h; continue; end
     noRebar = longReinforce(minIndex,2);
     phiRebar = longReinforce(minIndex,1);
     areaRebar = longReinforce(minIndex,3);
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
     AsMax = .04 * h * b; %EC2 & EC8
-    %AsMin = .01 * h * b; %EC8
+        
+    h = h + incr; b = h;
     
-    h = h + incr; b = h; niter = niter+1;
-    if niter == maxIter
-        error('Max iter reached')
-    end
 end
 sec_h = h - incr;    sec_b = sec_h ;
 
-% M_Rd numa direção!!!
+% M_Rd uni axial
 reinfPercFin = areaRebar * fyd / (sec_b * sec_h * fcd);
 redAxialFin = N_Axial / (sec_b * sec_h * fcd * 1000);
 diff = [];
 for i = 0 : .005 : .5
-    reinfPerc = abaco(10, redAxialFin, i); %10 because on the abacus is the value condisered infinite
-    diff = [diff; [i , abs(reinfPercFin - reinfPerc)]];
+    reinfPerc = abaco(0, redAxialFin, i); 
+    diff = [diff; [i , abs(reinfPercFin - reinfPerc), reinfPerc]];
 end
 
 [~, index1] = min(diff(:, 2));
-redBenMom = (index1 - 1) * .005;
-M_Rd = redBenMom * sec_h * sec_b^2 * fcd * 1000 ;
+redBenMom = diff(index1, 1);
+M_Rd = redBenMom * sec_h^2 * sec_b * fcd * 1000 ;
 
 %N_rd
 alpha = 6;

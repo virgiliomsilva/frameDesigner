@@ -2,18 +2,6 @@
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
 function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC2columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong, Vshear, given_h, longReinfN, longReinfPh)
-%% APAGAR
-% clear
-% clc
-% tic
-%
-% fyk = 500;
-% fck = 30;
-% cover = .035;
-% N_Axial = 900;
-% My_h = 220;
-% Mz_b = 180;
-% givenWidth =
 %% INFO SELECTION
 if (fyk == 500 && fck > 12 && fck < 50)
     abaco = importdata('info\abacus_REBAP83_C12_C50_S500.mat');
@@ -55,9 +43,9 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .65 %| AsMin > areaRebar)%& n
     redBenMom2 = My_h / (h * b^2 * fcd * 1000);
     bigRedBenMom = max(redBenMom1, redBenMom2);
     smallRedBenMom = min(redBenMom1, redBenMom2);
-    redBenMomRatio = bigRedBenMom / smallRedBenMom;
+    redBenMomRatio = max([smallRedBenMom / bigRedBenMom, .01]);
     
-    reinfPerc = abaco(redBenMomRatio, redAxial, smallRedBenMom);
+    reinfPerc = max([abaco(redBenMomRatio, redAxial, bigRedBenMom), .005]);
     AsAbacus = reinfPerc * b * h * fcd / fyd;
     
     AsMin = max([.1 * N_Axial / (fyd * 1000), .01 * b * h]);% first condition?? second eurocode 8 otherwise 0.2%
@@ -71,10 +59,11 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .65 %| AsMin > areaRebar)%& n
         end
     end
     
-    [~, minIndex] = min(diffAux);
+    [val, minIndex] = min(diffAux);
+    if val > 1; h = h + incr; b = h; continue; end
     noRebar = longReinforce(minIndex,2);
     phiRebar = longReinforce(minIndex,1);
-    areaRebar = longReinforce(minIndex,3);
+    areaRebar = longReinforce(minIndex,3)
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
     AsMax = .04 * h * b; %EC2 & EC8
@@ -91,13 +80,13 @@ reinfPercFin = areaRebar * fyd / (sec_b * sec_h * fcd);
 redAxialFin = N_Axial / (sec_b * sec_h * fcd * 1000);
 diff = [];
 for i = 0 : .005 : .5
-    reinfPerc = abaco(10, redAxialFin, i); %10 because on the abacus is the value condisered infinite
-    diff = [diff; [i , abs(reinfPercFin - reinfPerc)]];
+    reinfPerc = abaco(0, redAxialFin, i); 
+    diff = [diff; [i , abs(reinfPercFin - reinfPerc), reinfPerc]];
 end
 
 [~, index1] = min(diff(:, 2));
-redBenMom = (index1 - 1) * .005;
-M_Rd = redBenMom * sec_h * sec_b^2 * fcd * 1000 ;
+redBenMom = diff(index1, 1);
+M_Rd = redBenMom * sec_h^2 * sec_b * fcd * 1000 ;
 
 %N_rd
 alpha = 6;
@@ -107,7 +96,6 @@ N_rd = fcd * (sec_h * sec_b + areaRebar * alpha);
 if exist('given_h', 'var'); sec_h = given_h; end
 if exist('longReinfN', 'var'); noRebar = longReinfN; end
 if exist('longReinfPh', 'var'); phiRebar = longReinfPh; end
-
 
 %maximum spacing
 b0 = sec_h - 2 * cover;
@@ -196,8 +184,8 @@ smallTheta = adjacent / opposite;
 
 z = sec_h - 2 * (cover + .02);  %approximated
 V_Rd = min(shearReinfArea * z * (fywd * 1000 * .8) * smallTheta / shearReinfSpac, 1 * sec_b * z * .6 * fcd * 1000/ (bigTheta));
-
-if exist('Vshear', 'var')
+%%
+if exist('Vshear', 'var') && ~isempty(Vshear)
     Fz_Ed = Vshear;
     sec_h = given_h;
     sec_b = sec_h;
@@ -236,11 +224,33 @@ if exist('Vshear', 'var')
     shearReinfSpac = shearReinforce(minIndexS, 3);
     shearReinfLoops = shearReinforce(minIndexS, 2);
     shearReinfArea = shearReinforce(minIndexS, 4);
-    if shearReinfPhi == 8
-        sCondition = sCondition8;
-    elseif shearReinfPhi == 10
-        sCondition = sCondition10;
+%     if shearReinfPhi == 8
+%         sCondition = sCondition8;
+%     elseif shearReinfPhi == 10
+%         sCondition = sCondition10;
+%     end
+    
+    
+    mecVolRatio = 0; count = 0;
+    while mecVolRatio < .05
+        [~, minIndexS] = min(shearReinforce(:,4));
+        
+        shearReinfPhi = shearReinforce(minIndexS, 1);
+        shearReinfSpac = shearReinforce(minIndexS, 3);
+        shearReinfLoops = shearReinforce(minIndexS, 2);
+        shearReinfArea = shearReinforce(minIndexS, 4);
+        
+        %calculate mechanical volumetric ratio of confining hoops
+        pseudoH = sec_h - 2 * cover;
+        volConfHoop = shearReinfArea * pseudoH * 2; %accounting for both directions
+        volConcCore = (pseudoH ^ 2 - areaRebar) * shearReinfSpac;
+        mecVolRatio  = volConfHoop * fyd / (volConcCore * fcd);
+        shearReinforce(minIndexS, :) = [];
+        count = count + 1;
     end
+    
+    if count > 1; sCondition = 5; end
+    
     
     V_Rd = min(shearReinfArea * z * (fywd * 1000) * cot(theta) / shearReinfSpac, 1 * sec_b * z * .6 *(1 - fck/250) * fcd  * 1000 / (cot(theta) + tan(theta)));
 end

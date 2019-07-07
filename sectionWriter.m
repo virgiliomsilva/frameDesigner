@@ -1,13 +1,13 @@
 function [result]= sectionWriter(sectionName, fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac)
-%% eg
+% eg
 % sectionName =  'beam';
 % fyk = 400;
 % fck = 30;
 % h = .45;
 % b = .30;
 % cover = .035;
-% rebarPhi = 22.5;
-% rebarQtd = 8;
+% rebarPhi = 16;
+% rebarQtd = 5;
 % stirPhi = 8;
 % stirBran = 4;
 % stirSpac = .175;
@@ -18,6 +18,8 @@ if strncmpi(sectionName, 'column',4)
     sectionName = 'column' ;
 elseif strncmpi(sectionName, 'beam',4)
     sectionName = 'beam' ;
+else
+    error('Something went worng with the naming!')
 end
 %% section type
 sectionType = 'rcrs';
