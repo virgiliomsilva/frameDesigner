@@ -6,3 +6,5 @@ toSeismo\*.csv
 toSave\*.csv
 data\*.csv
 *.asv
+output/
+/output

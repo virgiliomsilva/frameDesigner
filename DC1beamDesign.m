@@ -2,19 +2,8 @@
 % beams with a maximum dimension of width over height of 80% with equal
 % reinforcement on top and bottom it can design only stirrups given the
 % longitudinal rebar
-function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, roMinCondition, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
-%% DELETE
-
-% hf = .2 ;%slab/flange depth
-% hfAs =  0.000314159 ;%top reinforcement of the slab per meter in squared meters
-% clear
-% clc
-%
-% fck = 30;
-% fyk = 400;
-% cover = .035;
-% M_Ed = 453;
-% Fz_Ed = 80;
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
+sCondition = 0;
 %% INFO SELECTION
 if (fyk == 500 & fck > 12 & fck < 50)
     abaco = importdata('info\abacusC12_50S500A1.csv');
