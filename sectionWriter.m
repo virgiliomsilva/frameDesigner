@@ -1,16 +1,4 @@
 function [result]= sectionWriter(sectionName, fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac)
-% eg
-% sectionName =  'beam';
-% fyk = 400;
-% fck = 30;
-% h = .45;
-% b = .30;
-% cover = .035;
-% rebarPhi = 16;
-% rebarQtd = 5;
-% stirPhi = 8;
-% stirBran = 4;
-% stirSpac = .175;
 %% section name
 originalSectionName = sectionName;
 

@@ -46,6 +46,9 @@ end
 writetable(cell2table(infrmFBPH_beam), [folder '\02_FBPH_beams.csv'],'WriteVariableNames',false);
 writetable(cell2table(infrmFB_beam), [folder '\02_FB_beams.csv'],'WriteVariableNames',false);
 %% sections fin
+for i = 1 : length(sections)
+    sections{1,i}{1,6} = string(sections{1,i}{1,6});
+end
 writetable(cell2table(sections'), [folder '\01_sections.csv'],'WriteVariableNames',false);
 %% nodes
 for i = 1 : size(nodes,1)

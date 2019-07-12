@@ -22,5 +22,4 @@ buildingName = 'regular_DC3' ;
 seismicCases = [24:31];
 folder = 'output\DC3' ;
 DC3frameDesigner(buildingName, fck, fyk, cover, seismicCases, folder);
-%% EC2
-%
+%%

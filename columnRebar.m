@@ -7,7 +7,7 @@ function [phiRebar, noRebar, areaRebar] = columnRebar(width, cover, reinfArea, g
     end
 
     dMax = .03;
-    reinfArea = .97 * reinfArea;
+    reinfArea = .99 * reinfArea;
 
     for j = 1 : size(longReinforce,1)
         if longReinforce(j,3) - reinfArea > 0
