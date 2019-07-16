@@ -66,7 +66,7 @@ save([folder '\DC2beamsIt1mid.mat'],'beamsMid')
 close(loading); loading = waitbar(0,'Initializing columns','Name', 'DC2: Step 3 of 6'); pause(1);
 noStories = max(stories(:,1)); count = 0; columns = []; columnsMid = [];
 for i = 1 : size(barsOfColumns,1)
-    % 1 design individually bars of a column
+    % #1 design individually bars of a column
     barNames = []; % to append in the end
     
     %design of all bars of a column!
@@ -82,13 +82,13 @@ for i = 1 : size(barsOfColumns,1)
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC2columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
-        %best iteration for that bar
-        [~, index] = max(mAux1(:,6));
+        %best iteration for that bar, width
+        [~, index] = max(mAux1(:,1));
         %best individual bars of that column
         bestIndi(j,:) = mAux1(index,:);
     end
     
-    %2 design from bottom to top - based on the biggest width of the best individuals
+    % #2 design from bottom to top - based on the biggest width of the best individuals
     %   bottom bar
     %       biggest width on the individual iteration
     bigOrigWidth = max(bestIndi(:,1)); 
@@ -132,7 +132,7 @@ for i = 1 : size(barsOfColumns,1)
         try
             try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
             gWidth = max(minWidth, min(floor(mAux3(index,1) * .9 * 20)/20, mAux3(index,1) - .05));
-            givenLong = mAux3(index, 6);
+%             givenLong = mAux3(index, 6);
         end
     end
     
@@ -141,14 +141,13 @@ for i = 1 : size(barsOfColumns,1)
     sorted = issorted(auxColumns(:,1),'descend');
     if ~sorted
         disp('First design method failed')
-        %         it will take a lot of time but will fix possibly it
         %         this method will design the column so many times as individual
         %         bars of that column and then, per page of the matrix will put a
         %         column designed based on each bar
         for k = 1 : noStories
             % parent bar
             width = bestIndi(k,1); 
-            givenLong = columnComp(bestIndi(k,5), 'EC8');
+%             givenLong = columnComp(bestIndi(k,5), 'EC8');
             
             for j = 1 : noStories
                 barName = barsOfColumns(i,j);
@@ -213,7 +212,7 @@ save([folder '\DC2columnsIt1mid.mat'],'columnsMid')
 %% seismic equilibrium
 %beam
 close(loading); loading = waitbar(0,'Initializing Beam seismic equilibrium','Name', 'DC2: Step 4 of 6'); pause(1);
-seismicBeams = [];
+seismicBeams = []; seismicBeamsMidShear = [];
 for i = 1 : length(beamDesiOrd)
     % get beam, get floor, get length, get direction
     % for each one get node, for each node get the sum
@@ -263,14 +262,20 @@ for i = 1 : length(beamDesiOrd)
     longReinfPh =  beams(barIndex, 5);
     [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC2beamDesign(fck, fyk , cover, 10, Vshear, given_b, given_h, longReinfN, longReinfPh);
     seismicBeams = [seismicBeams; [beams(barIndex,[1:7]),shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition, Vshear]];
+    
+    %seismic beams mid shear
+    [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC2beamDesignMidShear(fck, fyk , cover, Vshear, given_b, given_h, longReinfN);
+    seismicBeamsMidShear = [seismicBeamsMidShear; [beams(barIndex,[1:7]),shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, 0, Vshear]];
+        
     loading = waitbar(i / (length(beamDesiOrd)),loading,'Beam seismic equilibrium','Name', 'DC2: Step 4 of 6');
 end
 save([folder '\DC2beamsIt2SeismicEq.mat'],'seismicBeams')
+save([folder '\DC2beamsIt2SeismicEqMid.mat'],'seismicBeamsMidShear')
 
 %column
 close(loading); loading = waitbar(0,'Initializing column seismic equilibrium','Name', 'DC2: Step 5 of 6'); pause(1);
 pilars = setxor(beamDesiOrd, element(:,1));
-seismicColumns = [];
+seismicColumns = []; seismicColumnsMidShear = [];
 for i = 1 : length(pilars)
     barRow = find(columns(:,1) == pilars(i));
     %MRc = columns(barRow, 8);
@@ -338,12 +343,18 @@ for i = 1 : length(pilars)
     longReinfPh = columns(barRow, 5);
     [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC2columnDesign(fck, fyk , cover, 10, 10, 10, given_h, [longReinfPh,longReinfN,areaRebar], Vshear, given_h, longReinfN, longReinfPh);
     seismicColumns = [seismicColumns; [columns(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
+    
+    %seismic beams mid shear
+    [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC2columnDesignMidShear(fck, fyk , cover, sec_h, noRebar, phiRebar);
+    seismicColumnsMidShear = [seismicColumnsMidShear; [columns(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, 0, 0, 0]];
+    
     loading = waitbar(i / (length(pilars)),loading,'Column seismic equilibrium progress','Name', 'DC2: Step 5 of 6');
 end
 save([folder '\DC2columnsIt2SeismicEq.mat'],'seismicColumns')
+save([folder '\DC2columnsIt2SeismicEqMid.mat'],'seismicColumnsMidShear')
 %%
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC2: Step 6 of 6'); pause(1);
-toSeismo(seismicColumns(:,[1:3 , 5, 4, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder)
+toSeismo(seismicColumns(:,[1:5, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder)
 loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'DC2: Step 6 of 6');
 
 time = toc;

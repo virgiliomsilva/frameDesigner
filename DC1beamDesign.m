@@ -93,7 +93,7 @@ shearReinforce(ismember(shearReinforce(:,2), [6 7]), :) = [] ;%no beam configura
 switch longReinfNo
     case 2
         shearReinforce(shearReinforce(:,2) ~= 2, :) = [];
-    case {3, 5, 6}
+    case {3, 5, 6, 9, 10}
         shearReinforce(shearReinforce(:,2) == 4, :) = [];
         shearReinforce(shearReinforce(:,2) == 5, :) = [];
     case {4, 8}

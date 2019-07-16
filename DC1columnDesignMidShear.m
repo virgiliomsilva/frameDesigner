@@ -1,4 +1,4 @@
-%% DC2 COLUMNS DESIGN FUNCTION
+%% DC1 COLUMNS DESIGN FUNCTION
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
 function [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC1columnDesignMidShear(fck, fyk , cover, sec_h, noRebar, phiRebar)
@@ -17,7 +17,7 @@ function [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC1c
     %minimum stirrups to ensure proper bracing  - the method herein used is
     %valid to equally spaced rebars
     bracingDist = .3/2; %bracing distance on code EC8
-    halfDist = (sec_h - 2 * (cover + .02)) / 2; %distance from corner rebar to the middle of the section
+    halfDist = (sec_h - 2 * (cover + .01)) / 2; %distance from corner rebar to the middle of the section
     switch noRebar
         case 8
             if halfDist >= bracingDist

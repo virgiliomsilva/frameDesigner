@@ -55,7 +55,7 @@ for i = 1 : length(beamDesiOrd)
     
     beams(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd, sAux(conIndex2, 5), sAux(conIndex2, 6)];
     beamsMid(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
-    waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC2: Step 2 of 9');
+    waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC3: Step 2 of 9');
 end
 save([folder '\DC3beamsIt1.mat'],'beams')
 save([folder '\DC3beamsIt1mid.mat'],'beamsMid')
@@ -63,7 +63,7 @@ save([folder '\DC3beamsIt1mid.mat'],'beamsMid')
 close(loading); loading = waitbar(0,'Initializing columns','Name', 'DC3: Step 3 of 9'); pause(1);
 noStories = max(stories(:,1)); count = 0; columns = []; columnsMid = [];
 for i = 1 : size(barsOfColumns,1)
-    % 1 design individually bars of a column
+    % #1 design individually bars of a column
     barNames = []; % to append in the end!!!
     for j = 1 : noStories %design of all bars of a column!
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
@@ -77,12 +77,15 @@ for i = 1 : size(barsOfColumns,1)
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
-        [~, index] = max(mAux1(:,6));%best iteration for that bar
-        bestIndi(j,:) = mAux1(index,:);%best individual bars of that column
+        %best iteration for that bar
+        [~, index] = max(mAux1(:,1));
+        %best individual bars of that column
+        bestIndi(j,:) = mAux1(index,:);
     end
     
-    % 2 design from bottom to top - based on the biggest width of the best individuals
+    % #2 design from bottom to top - based on the biggest width of the best individuals
     %bottom bar
+    
     bigOrigWidth = max(bestIndi(:,1)); %biggest width on the individual iteration
     barName = barsOfColumns(i,1);
     barIndex = find(DataDesign(:,1,1) == barName);
@@ -110,7 +113,7 @@ for i = 1 : size(barsOfColumns,1)
             My_h = DataDesign(barIndex, 5, p);
             Mz_b = DataDesign(barIndex, 6, p);
             V_Ed = DataDesign(barIndex, 4, p);
-            givenLong = columnComp(mAux3(index, 5),'EC8');%%%%%%%%%%%%%%%%%%%
+%             givenLong = columnComp(mAux3(index, 5),'EC8');%%%%%%%%%%%%%%%%%%%
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);%, givenLong);
             mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
@@ -120,7 +123,7 @@ for i = 1 : size(barsOfColumns,1)
         try
             try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
             gWidth = max(minWidth, min(floor(mAux3(index,1) * .9 * 20)/20, mAux3(index,1) - .05));
-            givenLong = mAux3(index, 6);
+%             givenLong = mAux3(index, 6);
         end
     end
     
@@ -195,15 +198,21 @@ end
 save([folder '\DC3columnsIt1.mat'],'columns')
 save([folder '\DC3columnsIt1mid.mat'],'columnsMid')
 %% 1.3 comparison
-% upgrading the MRD values
+% updating the MRD values
 close(loading); loading = waitbar(0,'Initializing columns resisting bending moments update','Name', 'DC3: Step 4 of 9'); pause(1);
 for i = 1 : size(columns,1)
     b = columns(i, 3);
     h = columns(i, 2);
     areaRebar = columns(i, 6);
-    N_Axial = max(DataDesign(DataDesign(:,1,1) == columns(i,1) , 2, seismicCasesIdx));
-    M_Rd = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial);
-    columns(i, 8) = M_Rd;
+    
+    mAux = [];
+    for j = 1 : length(seismicCases)
+        N_Axial = DataDesign(DataDesign(:,1,1) == columns(i,1) , 2, seismicCasesIdx(j));
+        M_Rd = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial);
+        mAux(end+1) = M_Rd;
+    end
+    
+    columns(i, 8) = min(mAux);%M_Rd;
     loading = waitbar(i / size(columns,1),loading,'Columns resisting bending moments update progress','Name', 'DC3: Step 4 of 9');
 end
 %%
@@ -260,7 +269,7 @@ end
 close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'DC3: Step 6 of 9'); pause(1);
 newColumns = []; columns13 = [];
 for i = 1 : size(barsOfColumns,1)
-    % construir tabela
+    % build table
     aux1 = barsOfColumns(i,:);
     for j = 1 : length(aux1)
         auxElement(j,:) = element(element(:,1) == aux1(j),[1:3]);
@@ -297,7 +306,6 @@ for i = 1 : size(barsOfColumns,1)
         % momendo resistente
         % se eu dimensionar para o máximo axial e para o momento
         % necessário, só numa direção (hack: relação dos momentos tem de
-        % ser dez, desta forma o programa assume só num sentido)
         for j = 1 : size(toGive,1)
             N_axial = max(DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx));
             My_h = toGive(j, 2); Mz_b = 0;
@@ -339,7 +347,7 @@ for i = 1 : size(barsOfColumns,1)
     %give concrete dimensions
     for z = 1 : (noStories) % check if superior dimesions are the same or smaller, if is it, add it to possDesigns
         aCheck = issorted(primeColumns(:,2),'descend');
-        if ~aCheck% == 1
+        if ~aCheck
             for j = noStories : -1 : 2
                 if primeColumns(j-1,2) < primeColumns(j,2)
                     primeColumns(j-1,[2,3]) = primeColumns(j,[2,3]);
@@ -463,12 +471,11 @@ for i = 1 : size(barsOfColumns,1)
     clear primeColumns; newColumns = [];
     loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress','Name', 'DC3: Step 6 of 9');
 end
-
 save([folder '\DC3columnsIt2rule13.mat'],'columns13')
 %% seismic equilibrium
 %beam
 close(loading); loading = waitbar(0,'Initializing Beam seismic equilibrium','Name', 'DC3: Step 7 of 9'); pause(1);
-seismicBeams = [];
+seismicBeams = []; seismicBeamsMidShear = [];
 for i = 1 : length(beamDesiOrd)
     % get beam, get floor, get length, get direction
     % for each one get node, for each node get the sum
@@ -518,14 +525,20 @@ for i = 1 : length(beamDesiOrd)
     longReinfPh =  beams(barIndex, 5);
     [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC3beamDesign(fck, fyk , cover, 10, Vshear, given_b, given_h, longReinfN, longReinfPh);
     seismicBeams = [seismicBeams; [beams(barIndex,[1:7]),shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition, Vshear]];
+    
+    %mid shear
+    [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC3beamDesignMidShear(fck, fyk , cover, Vshear, given_b, given_h, longReinfN);
+    seismicBeamsMidShear = [seismicBeamsMidShear; [beams(barIndex,[1:7]),shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, 0, Vshear]];
+    
     loading = waitbar(i / (length(beamDesiOrd)),loading,'Beam seismic equilibrium','Name', 'DC3: Step 7 of 9');
 end
 save([folder '\DC3beamsIt2SeismicEq.mat'],'seismicBeams')
+save([folder '\DC3beamsIt2SeismicEqMid.mat'],'seismicBeamsMidShear')
 
 %column
 close(loading); loading = waitbar(0,'Initializing column seismic equilibrium','Name', 'DC3: Step 8 of 9'); pause(1);
 pilars = setxor(beamDesiOrd, element(:,1));
-seismicColumns = [];
+seismicColumns = []; seismicColumnsMidShear = [];
 for i = 1 : length(pilars)
     barRow = find(columns13(:,1) == pilars(i));
     %MRc = columns(barRow, 8);
@@ -593,14 +606,20 @@ for i = 1 : length(pilars)
     longReinfPh = columns13(barRow, 5);
     [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, 10, 10, 10, given_h, [longReinfPh,longReinfN,areaRebar], Vshear, given_h, longReinfN, longReinfPh);
     seismicColumns = [seismicColumns; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
+    
+    %mid shear
+    [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC3columnDesignMidShear(fck, fyk , cover, sec_h, noRebar, phiRebar);
+    seismicColumnsMidShear = [seismicColumnsMidShear; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, 0, 0]];
+    
     loading = waitbar(i / (length(pilars)),loading,'Column seismic equilibrium progress','Name', 'DC3: Step 8 of 9');
 end
 save([folder '\DC3columnsIt3SeismicEq.mat'],'seismicColumns')
+save([folder '\DC3columnsIt3SeismicEqMid.mat'],'seismicColumnsMidShear')
 %%
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC3: Step 9 of 9'); pause(1);
 toSeismo(seismicColumns(:,[1:3 , 5, 4, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder);
 loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'DC3: Step 9 of 9');
-
+%%
 time = toc;
 minutes = floor(time/60);
 seconds = floor(time - minutes*60);

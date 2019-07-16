@@ -104,9 +104,9 @@ shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
 
 %minimum stirrups to ensure proper bracing  - the method herein used is
 %valid to equally spaced rebars
-bracingDist = .15; %bracing distance on code
+bracingDist = .3/2; %bracing distance on code
 spaces = noRebar / 4;
-halfDist = (b - 2 * (cover + .02)) / 2; %distance from corner rebar to the middle of the section
+halfDist = (b - 2 * (cover + .01)) / 2; %distance from corner rebar to the middle of the section
 switch noRebar
     case 8
         if halfDist >= bracingDist

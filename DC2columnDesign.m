@@ -63,7 +63,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .65 %| AsMin > areaRebar)%& n
     if val > 1; h = h + incr; b = h; continue; end
     noRebar = longReinforce(minIndex,2);
     phiRebar = longReinforce(minIndex,1);
-    areaRebar = longReinforce(minIndex,3)
+    areaRebar = longReinforce(minIndex,3);
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
     AsMax = .04 * h * b; %EC2 & EC8
@@ -106,7 +106,7 @@ shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
 %minimum stirrups to ensure proper bracing  - the method herein used is
 %valid to equally spaced rebars
 bracingDist = .25/2; %bracing distance on code EC8
-halfDist = (b - 2 * (cover + .02)) / 2; %distance from corner rebar to the middle of the section
+halfDist = (b - 2 * (cover + .01)) / 2; %distance from corner rebar to the middle of the section
 switch noRebar
     case 8
         if halfDist >= bracingDist
