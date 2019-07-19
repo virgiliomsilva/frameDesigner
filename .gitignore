@@ -8,3 +8,10 @@ data\*.csv
 *.asv
 output/
 /output
+data/
+/data
+deprecated/
+/deprecated
+info/deprecated
+info/abacus_REBAP83
+*.pdf

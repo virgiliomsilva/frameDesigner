@@ -104,6 +104,10 @@ dblmin = phiRebar / 1000;
 [max_spacing, sCondition]= min([min([15 * phiRebar/1000, b, .3]) * .6, b0/2, .175, 8*dblmin]); %evaluating the shear spacing on the critical sections
 shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
 
+%compatible reinforcements regarding long num
+maxStirrups = noRebar / 4 + 1;
+shearReinforce = shearReinforce(shearReinforce(:,2) <= maxStirrups,:);
+
 %minimum stirrups to ensure proper bracing  - the method herein used is
 %valid to equally spaced rebars
 bracingDist = .2/2; %bracing distance on code EC8

@@ -12,6 +12,10 @@ function [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC3c
     %maximum spacing
     max_spacing = min([15 * phiRebar/1000, sec_h, .3]);
     shearReinforce(shearReinforce(:,3) > max_spacing, :) = [];
+    
+    %compatible reinforcements regarding long num
+    maxStirrups = noRebar / 4 + 1;
+    shearReinforce = shearReinforce(shearReinforce(:,2) <= maxStirrups,:);
 
     %minimum stirrups to ensure proper bracing  - the method herein used is
     %valid to equally spaced rebars
