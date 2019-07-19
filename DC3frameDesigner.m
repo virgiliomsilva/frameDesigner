@@ -307,14 +307,20 @@ for i = 1 : size(barsOfColumns,1)
         % se eu dimensionar para o máximo axial e para o momento
         % necessário, só numa direção (hack: relação dos momentos tem de
         for j = 1 : size(toGive,1)
-            N_axial = max(DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx));
-            My_h = toGive(j, 2); Mz_b = 0;
-            [columnsRow,~] = find(columns(:,1) == toGive(j,1));
-            gWidth = columns(columnsRow, 2);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);
-            V_Ed = columns(columnsRow, 15);
-            finalColumn = [toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
+            matAux = [];
+            for k = 1 : length(seismicCases)
+                N_axial = DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx(k));
+                My_h = toGive(j, 2); Mz_b = 0;
+                [columnsRow,~] = find(columns(:,1) == toGive(j,1));
+                gWidth = columns(columnsRow, 2);
+                [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);
+                
+                V_Ed = columns(columnsRow, 15);
+                matAux = [matAux;toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]
+            end
             
+            [~, indexu] = max(matAux(:, 8));
+            finalColumn = matAux(indexu,:);
             newColumns = [newColumns; finalColumn];
             
             %update my table!
