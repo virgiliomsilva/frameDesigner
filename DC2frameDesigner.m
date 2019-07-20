@@ -345,7 +345,7 @@ for i = 1 : length(pilars)
     seismicColumns = [seismicColumns; [columns(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
     
     %seismic beams mid shear
-    [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC2columnDesignMidShear(fck, fyk , cover, sec_h, noRebar, phiRebar);
+    [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC2columnDesignMidShear(fck, fyk , cover, given_h, longReinfN, longReinfPh);
     seismicColumnsMidShear = [seismicColumnsMidShear; [columns(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, 0, 0, 0]];
     
     loading = waitbar(i / (length(pilars)),loading,'Column seismic equilibrium progress','Name', 'DC2: Step 5 of 6');

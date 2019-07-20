@@ -614,7 +614,7 @@ for i = 1 : length(pilars)
     seismicColumns = [seismicColumns; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
     
     %mid shear
-    [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC3columnDesignMidShear(fck, fyk , cover, sec_h, noRebar, phiRebar);
+    [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC3columnDesignMidShear(fck, fyk , cover, given_h, longReinfN, longReinfPh);
     seismicColumnsMidShear = [seismicColumnsMidShear; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, 0, 0]];
     
     loading = waitbar(i / (length(pilars)),loading,'Column seismic equilibrium progress','Name', 'DC3: Step 8 of 9');
