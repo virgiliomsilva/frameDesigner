@@ -304,7 +304,7 @@ for i = 1 : size(barsOfColumns,1)
         % situação sísmica condicionante para o somatório é quando o
         % esforço axial é máximo (das combinações sísmicas) pois reduz o
         % momendo resistente
-        % se eu dimensionar para o máximo axial e para o momento
+        % se eu dimensionar para o menor bending resistent
         % necessário, só numa direção (hack: relação dos momentos tem de
         for j = 1 : size(toGive,1)
             matAux = [];
@@ -465,8 +465,8 @@ for i = 1 : size(barsOfColumns,1)
         N_axial = max(DataDesign(DataDesign(:,1,1) == primeColumns(j,1), 2, seismicCasesIdx));
         primeColumns(j, 8) = MrdColumn(fck, fyk, sec_b, sec_h, areaRebar, N_axial);
         
-        longReinfN = primeColumns(j, 4);
-        longReinfPh = primeColumns(j, 5);
+        longReinfN = primeColumns(j, 4); %%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%% checar isto
+        longReinfPh = primeColumns(j, 5); %%%% parar aqui, parece certo
         Ved = columns(columns(:,1) == primeColumns(j, 1), 15);
         [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, Vrd, sCondition] = DC3columnDesign(fck, fyk , cover, 10, 10, 10, sec_b, [longReinfPh,longReinfN,areaRebar], [], sec_b, longReinfN, longReinfPh);
         primeColumns(j, [9:15]) = [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, Vrd, sCondition, Ved];
@@ -541,10 +541,17 @@ end
 save([folder '\DC3beamsIt2SeismicEq.mat'],'seismicBeams')
 save([folder '\DC3beamsIt2SeismicEqMid.mat'],'seismicBeamsMidShear')
 
+%%
+% load('D:\Google Drive\Disco UPorto\MIECIVIL\5 Ano\2 Semestre\Matlab_Files\frameDesigner\output\regular_DC3\DC3beamsIt2SeismicEq.mat')
+% 
+% load('D:\Google Drive\Disco UPorto\MIECIVIL\5 Ano\2 Semestre\Matlab_Files\frameDesigner\output\regular_DC3\DC3columnsIt2rule13.mat')
+%%
+
 %column
 close(loading); loading = waitbar(0,'Initializing column seismic equilibrium','Name', 'DC3: Step 8 of 9'); pause(1);
 pilars = setxor(beamDesiOrd, element(:,1));
 seismicColumns = []; seismicColumnsMidShear = [];
+count = 0;
 for i = 1 : length(pilars)
     barRow = find(columns13(:,1) == pilars(i));
     %MRc = columns(barRow, 8);
@@ -573,7 +580,7 @@ for i = 1 : length(pilars)
         [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 1); barsX = element(row,1);
         bendRdXaux = 0;
         for j = 1 : length(barsX)
-            M_Rd = beams(beams(:,1) == barsX(j), 6);
+            M_Rd = seismicBeams(seismicBeams(:,1) == barsX(j), 6);
             bendRdXaux = bendRdXaux + M_Rd;
         end
         bendRdX(k) = bendRdXaux;
@@ -581,7 +588,7 @@ for i = 1 : length(pilars)
         [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 2); barsY = element(row,1);
         bendRdYaux = 0;
         for j = 1 : length(barsY)
-            M_Rd = beams(beams(:,1) == barsY(j), 6);
+            M_Rd = seismicBeams(seismicBeams(:,1) == barsY(j), 6);
             bendRdYaux = bendRdYaux + M_Rd;
         end
         bendRdY(k) = bendRdYaux;
@@ -606,10 +613,13 @@ for i = 1 : length(pilars)
     end
     
     Vshear = sum(Mid) / cLength;
-    
+    if count>61
+        disp('here')
+    end
+    count = count +1;
     given_h = columns13(barRow, 2);
-    longReinfN = columns13(barRow, 4);
-    longReinfPh = columns13(barRow, 5);
+    longReinfN = columns13(barRow, 5);%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    longReinfPh = columns13(barRow, 4);%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, 10, 10, 10, given_h, [longReinfPh,longReinfN,areaRebar], Vshear, given_h, longReinfN, longReinfPh);
     seismicColumns = [seismicColumns; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
     
