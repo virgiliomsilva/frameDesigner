@@ -197,6 +197,14 @@ for i = 1 : size(barsOfColumns,1)
 end
 save([folder '\DC3columnsIt1.mat'],'columns')
 save([folder '\DC3columnsIt1mid.mat'],'columnsMid')
+%%
+% load('D:\Google Drive\Disco UPorto\MIECIVIL\5 Ano\2 Semestre\Matlab_Files\frameDesigner\output\regular_DC3\DC3beamsIt1.mat')
+% load('D:\Google Drive\Disco UPorto\MIECIVIL\5 Ano\2 Semestre\Matlab_Files\frameDesigner\output\regular_DC3\DC3beamsIt1mid.mat')
+% load('D:\Google Drive\Disco UPorto\MIECIVIL\5 Ano\2 Semestre\Matlab_Files\frameDesigner\output\regular_DC3\DC3columnsIt1.mat')
+% load('D:\Google Drive\Disco UPorto\MIECIVIL\5 Ano\2 Semestre\Matlab_Files\frameDesigner\output\regular_DC3\DC3columnsIt1mid.mat')
+
+
+%%
 %% 1.3 comparison
 % updating the MRD values
 close(loading); loading = waitbar(0,'Initializing columns resisting bending moments update','Name', 'DC3: Step 4 of 9'); pause(1);
@@ -265,7 +273,10 @@ for i = 1 : size(nodes,1)
     increNeed(end+1,:) = [nodes(i,1), max(auxBendMomX, auxBendMomY)];
     loading = waitbar(i / (size(nodes,1)),loading,'Comparisons progress','Name', 'DC3: Step 5 of 9');
 end
+%%
 
+
+%%
 close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'DC3: Step 6 of 9'); pause(1);
 newColumns = []; columns13 = [];
 for i = 1 : size(barsOfColumns,1)
@@ -287,7 +298,7 @@ for i = 1 : size(barsOfColumns,1)
         table(j, 8) = table(j, 7) - table(j, 6);
     end
     
-    % iterations
+    % iterations 
     while ~all(table(:,8) < 0)%while there is a "needed" bigger than what it is
         [~, index] = max(table(:, 8));
         improve = table(index, 7) / 2;
@@ -313,13 +324,25 @@ for i = 1 : size(barsOfColumns,1)
                 My_h = toGive(j, 2); Mz_b = 0;
                 [columnsRow,~] = find(columns(:,1) == toGive(j,1));
                 gWidth = columns(columnsRow, 2);
+                %dar aqui o long reinfrocement
                 [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);
                 
+                %update for the real MR_D min
+                mAux2 = [];
+                for p = 1 : length(seismicCases)
+                    N_Axial = DataDesign(DataDesign(:,1,1) == toGive(j,1) , 2, seismicCasesIdx(p));
+                    M_Rd = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial);
+                    mAux2(end+1) = M_Rd;
+                end
+                
+                %                 columns(i, 8) = min(mAux2);%M_Rd;
+                M_RdFin = min(mAux2);
+                %%%%%%%%%%%%%%%%%%%
                 V_Ed = columns(columnsRow, 15);
-                matAux = [matAux;toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]
+                matAux = [matAux;toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_RdFin, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]
             end
             
-            [~, indexu] = max(matAux(:, 8));
+            [~, indexu] = max(matAux(:, 7));%%%% %%%%%%%%%%%%%%%%%%%
             finalColumn = matAux(indexu,:);
             newColumns = [newColumns; finalColumn];
             
@@ -465,8 +488,8 @@ for i = 1 : size(barsOfColumns,1)
         N_axial = max(DataDesign(DataDesign(:,1,1) == primeColumns(j,1), 2, seismicCasesIdx));
         primeColumns(j, 8) = MrdColumn(fck, fyk, sec_b, sec_h, areaRebar, N_axial);
         
-        longReinfN = primeColumns(j, 4); %%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%% checar isto
-        longReinfPh = primeColumns(j, 5); %%%% parar aqui, parece certo
+        longReinfN = primeColumns(j, 5);
+        longReinfPh = primeColumns(j, 4);
         Ved = columns(columns(:,1) == primeColumns(j, 1), 15);
         [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, Vrd, sCondition] = DC3columnDesign(fck, fyk , cover, 10, 10, 10, sec_b, [longReinfPh,longReinfN,areaRebar], [], sec_b, longReinfN, longReinfPh);
         primeColumns(j, [9:15]) = [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, Vrd, sCondition, Ved];
