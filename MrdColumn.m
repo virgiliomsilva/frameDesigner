@@ -1,5 +1,5 @@
 %% MrdColumn
-% Given a column section it and a axial force it returns the maximum
+% Given a column section it and an axial force it returns the maximum
 % uniaxial bending moment
 function [M_Rd] = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial)
     if (fyk == 500 && fck > 12 && fck < 50)

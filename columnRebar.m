@@ -1,3 +1,6 @@
+%%
+% Given a square column dimension, reinforcement area and possible 
+% reinforcement patterns it returns a pattern that follows those requisites
 function [phiRebar, noRebar, areaRebar] = columnRebar(width, cover, reinfArea, givenLong)
     if exist('givenLong', 'var') && ~isempty(givenLong)
         longReinforce = givenLong;
@@ -7,7 +10,7 @@ function [phiRebar, noRebar, areaRebar] = columnRebar(width, cover, reinfArea, g
     end
 
     dMax = .03;
-    reinfArea = .99 * reinfArea;
+%     reinfArea = .99 * reinfArea;
 
     for j = 1 : size(longReinforce,1)
         if longReinforce(j,3) - reinfArea > 0

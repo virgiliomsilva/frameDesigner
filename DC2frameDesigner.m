@@ -357,7 +357,7 @@ close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC
 toSeismo(seismicColumns(:,[1:5, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder)
 loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'DC2: Step 6 of 6');
 
-time = toc;
+time = toc; save([folder '\time.mat'],'time');
 minutes = floor(time/60);
 seconds = floor(time - minutes*60);
 disp(['Finished in ' num2str(minutes) ' minutes and ' num2str(seconds) ' seconds.']);

@@ -24,4 +24,5 @@ buildingName3 = 'regular_DC3' ;
 seismicCases = [24:31];
 folder = ['output\' buildingName3];
 mkdir(folder);
-DC3frameDesigner(buildingName3, fck, fyk, cover, seismicCases, folder);
+DC3frameDesigner(buildingName3, fck, fyk, cover, seismicCases, folder, 'no');
+% system('shutdown -s')

@@ -16,7 +16,7 @@ shearReinforce = importdata('info\steel_shear.csv');
 if exist('givenLong', 'var')
     longReinforce = givenLong;
 else
-    longReinforce  = importdata('info\steel_columnEC8.csv');
+    longReinforce = importdata('info\steel_columnEC8.csv');
     longReinforce = longReinforce(:,[1:3]);
 end
 
