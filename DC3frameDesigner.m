@@ -5,6 +5,7 @@ function [] = DC3frameDesigner(buildingName, fck, fyk, cover, seismicCases, fold
 G_RD = 1.1;
 
 tic; disp('Started');
+%% STEP 1 - GETTING DATA
 loading = waitbar(0,'Reading data','Name', 'DC3: Step 1 of 9');
 
 fnData = ['data\' buildingName '\dataset.csv'] ;
@@ -15,7 +16,7 @@ fnElement = ['data\' buildingName '\connectivity.csv'] ;
 clear buildingName fnData fnElement fnNodes
 seismicCasesIdx = find(ismember(cases, seismicCases));
 loading = waitbar(1,loading,'Reading data','Name', 'DC3: Step 1 of 9'); pause(.5);
-%%
+%% STEP 2 - DESIGN BEAMS
 close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC3: Step 2 of 9'); pause(1);
 beams = []; beamsMid = [];
 for i = 1 : length(beamDesiOrd)
@@ -69,7 +70,7 @@ for i = 1 : length(beamDesiOrd)
 end
 save([folder '\DC3beamsIt1.mat'],'beams');
 save([folder '\DC3beamsIt1mid.mat'],'beamsMid'); clear beamsMid
-%%
+%% STEP 3 - DESIGN COLUMNS
 close(loading); loading = waitbar(0,'Initializing columns','Name', 'DC3: Step 3 of 9'); pause(1);
 noStories = max(stories(:,1)); columns = []; columnsMid = []; count = 0;
 for i = 1 : size(barsOfColumns,1)
@@ -79,7 +80,7 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : length(cases)
+        for k = 1 : 2%length(cases)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             N_axial = DataDesign(barIndex, 2, k);
             My_h = DataDesign(barIndex, 5, k);
             Mz_b = DataDesign(barIndex, 6, k);
@@ -226,7 +227,7 @@ end
 save([folder '\DC3columnsIt1.mat'],'columns');
 save([folder '\DC3columnsIt1mid.mat'],'columnsMid');
 clear columnsMid count i
-%% 1.3 comparison
+%% STEP 4 - UPDATE COLUMNS RESISTING BENDING MOMENTS
 % updating the MRD values
 close(loading); loading = waitbar(0,'Initializing columns resisting bending moments update','Name', 'DC3: Step 4 of 9'); pause(1);
 for i = 1 : size(columns,1)
@@ -246,7 +247,7 @@ for i = 1 : size(columns,1)
     loading = waitbar(i / size(columns,1),loading,'Columns resisting bending moments update progress','Name', 'DC3: Step 4 of 9');
 end
 clear areaRebar b h i j M_Rd mAux N_Axial
-%%
+%% STEP 5 - DO THE RESISTING BENDING MOMENTS [1.3] COMPARISON
 close(loading); loading = waitbar(0,'Initializing bending comparisons','Name', 'DC3: Step 5 of 9'); pause(1);
 increNeed = [];
 for i = 1 : size(nodes,1)
@@ -300,10 +301,9 @@ for i = 1 : size(nodes,1)
     
     loading = waitbar(i / (size(nodes,1)),loading,'Comparisons progress','Name', 'DC3: Step 5 of 9');
 end
-save([folder '\increNeed.mat'],'increNeed');
-save([folder '\columnsDel.mat'],'columns');
-clear increNeed i
-%%
+% save([folder '\increNeed.mat'],'increNeed');
+% save([folder '\columnsDel.mat'],'columns');
+%% STEP 6 - REINFORCE COLUMNS FOR THE 1.3 RULE
 close(loading); loading = waitbar(0,'Initializing column re-reinforcement','Name', 'DC3: Step 6 of 9'); pause(1);
 newColumns = []; columns13 = [];
 for i = 1 : size(barsOfColumns,1)
@@ -546,12 +546,11 @@ for i = 1 : size(barsOfColumns,1)
     
     loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress','Name', 'DC3: Step 6 of 9');
     clear primeColumns
-    newColumns = [];   
+    newColumns = [];
 end
 save([folder '\DC3columnsIt2rule13.mat'],'columns13');
 clear noStories flag columns increNeed newColumns
-%% seismic equilibrium
-%beam
+%% STEP 7 - SHEAR CAPACITY DESIGN BEAMS
 close(loading); loading = waitbar(0,'Initializing Beam seismic equilibrium','Name', 'DC3: Step 7 of 9'); pause(1);
 seismicBeams = []; seismicBeamsMidShear = [];
 for i = 1 : length(beamDesiOrd)
@@ -618,8 +617,7 @@ end
 save([folder '\DC3beamsIt2SeismicEq.mat'],'seismicBeams');
 save([folder '\DC3beamsIt2SeismicEqMid.mat'],'seismicBeamsMidShear');
 clear beams seismicBeamsMidShear
-
-%column
+%% STEP 8 - SHEAR CAPACITY DESIGN COLUMNS
 close(loading); loading = waitbar(0,'Initializing column seismic equilibrium','Name', 'DC3: Step 8 of 9'); pause(1);
 pilars = setxor(beamDesiOrd, element(:,1));
 seismicColumns = []; seismicColumnsMidShear = [];
@@ -716,11 +714,11 @@ for i = 1 : length(pilars)
 end
 save([folder '\DC3columnsIt3SeismicEq.mat'],'seismicColumns');
 save([folder '\DC3columnsIt3SeismicEqMid.mat'],'seismicColumnsMidShear');
-%%
+%% STEP 9 - EXPORT RESULTS TO CSV FOR SEISMOSTRUCT
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC3: Step 9 of 9'); pause(1);
 toSeismo(seismicColumns(:,[1:5, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder);
 loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'DC3: Step 9 of 9');
-%%
+%% FINISH
 time = toc; save([folder '\time.mat'],'time');
 minutes = floor(time/60);
 seconds = floor(time - minutes*60);

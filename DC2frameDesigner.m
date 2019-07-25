@@ -74,7 +74,7 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : length(cases)
+        for k = 1 : 2%length(cases)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             N_axial = DataDesign(barIndex, 2, k);
             My_h = DataDesign(barIndex, 5, k);
             Mz_b = DataDesign(barIndex, 6, k);

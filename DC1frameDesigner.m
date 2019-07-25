@@ -8,7 +8,8 @@ fnNodes = ['data\' buildingName '\nodes.csv'] ;
 fnElement = ['data\' buildingName '\connectivity.csv'] ;
 
 [~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
-seismicCasesIdx = find(ismember(cases, seismicCases));
+clear buildingName fnData fnElement fnNodes
+% seismicCasesIdx = find(ismember(cases, seismicCases));
 loading = waitbar(1,loading,'Reading data','Name', 'DC1: Step 1 of 4'); pause(1);
 %%
 close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC1: Step 2 of 4'); pause(1);
@@ -52,6 +53,9 @@ for i = 1 : length(beamDesiOrd)
     
     beams(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd, sAux(conIndex2, 5), sAux(conIndex2, 6)];
     beamsMid(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
+    
+    clear
+    
     waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC1: Step 2 of 4');
 end
 save([folder '\DC1beamsIt1.mat'],'beams')
@@ -68,7 +72,7 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : length(cases)
+        for k = 1 : 2%length(cases)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             N_axial = DataDesign(barIndex, 2, k);
             My_h = DataDesign(barIndex, 5, k);
             Mz_b = DataDesign(barIndex, 6, k);
