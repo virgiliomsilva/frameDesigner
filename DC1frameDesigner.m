@@ -1,5 +1,5 @@
 %% DC1frameDesigner
-function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicCases, folder)
+function [] = DC1frameDesigner(buildingName, fck, fyk, cover, nonSeismicCases folder)
 tic; disp('Started');
 loading = waitbar(0,'Reading data','Name', 'DC1: Step 1 of 4');
 
@@ -53,8 +53,6 @@ for i = 1 : length(beamDesiOrd)
     
     beams(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd, sAux(conIndex2, 5), sAux(conIndex2, 6)];
     beamsMid(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
-    
-    clear
     
     waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC1: Step 2 of 4');
 end
@@ -139,51 +137,69 @@ for i = 1 : size(barsOfColumns,1)
         %         this method will design the column so many times as individual
         %         bars of that column and then, per page of the matrix will put a
         %         column designed based on each bar
-        for k = 1 : noStories
-            % parent bar
-            width = bestIndi(k,1);
-            %             givenLong = columnComp(bestIndi(k,5), 'EC8');
-            for j = 1 : noStories
-                barName = barsOfColumns(i,j);
-                barIndex = find(DataDesign(:,1,1) == barName);
-                try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-                Gwidth = max(width, minWidth);
-                for p = 1 : length(cases)
-                    N_axial = DataDesign(barIndex, 2, p);
-                    My_h = DataDesign(barIndex, 5, p);
-                    Mz_b = DataDesign(barIndex, 6, p);
-                    V_Ed = DataDesign(barIndex, 4, p);
-                    [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, Gwidth);%, givenLong);
-                    ratio = bestIndi(j,6) / reinfPercFin;
-                    mAux2(p,:) = [ratio, sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
-                end
-                %best iteration for that bar
-                [~, index] = max(mAux2(:,7));
-                %best individual bars of that column with a seed provided by the parent bar
-                bestIndiMethod(j,:,k) = mAux2(index,:);
-            end
-        end
+        %         for k = 1 : noStories
+        %             % parent bar
+        %             width = bestIndi(k,1);
+        %             %             givenLong = columnComp(bestIndi(k,5), 'EC8');
+        %             for j = 1 : noStories
+        %                 barName = barsOfColumns(i,j);
+        %                 barIndex = find(DataDesign(:,1,1) == barName);
+        %                 try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
+        %                 Gwidth = max(width, minWidth);
+        %                 for p = 1 : length(cases)
+        %                     N_axial = DataDesign(barIndex, 2, p);
+        %                     My_h = DataDesign(barIndex, 5, p);
+        %                     Mz_b = DataDesign(barIndex, 6, p);
+        %                     V_Ed = DataDesign(barIndex, 4, p);
+        %                     [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, Gwidth);%, givenLong);
+        %                     ratio = bestIndi(j,6) / reinfPercFin;
+        %                     mAux2(p,:) = [ratio, sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
+        %                 end
+        %                 %best iteration for that bar
+        %                 [~, index] = max(mAux2(:,7));
+        %                 %best individual bars of that column with a seed provided by the parent bar
+        %                 bestIndiMethod(j,:,k) = mAux2(index,:);
+        %             end
+        %         end
+        %
+        %         % check if superior dimesions are the same or smaller, if is it, add it to possDesigns
+        %         possDesigns = [];
+        %         for z = 1 : (noStories)
+        %             aCheck = issorted(bestIndiMethod(:,2,z),'descend');
+        %             if aCheck == 1
+        %                 possDesigns = [possDesigns, z];
+        %             end
+        %         end
+        %
+        %         if isempty(possDesigns)
+        %             disp(['Cannot design this bars/column: ' num2str(barNames')]);
+        %             [row, col] = size(auxColumns);
+        %             auxColumns = zeros(row, col);
+        %         else
+        %             validDesigns = bestIndiMethod(:,:,possDesigns);
+        %             for z = 1 : size(validDesigns,3)
+        %                 eval(z) = mean(bestIndiMethod(:,1,z));
+        %             end
+        %             [~, bestDesign]= min(eval);
+        %             auxColumns = bestIndiMethod(:,[2:end],bestDesign);
+        %         end
         
-        % check if superior dimesions are the same or smaller, if is it, add it to possDesigns
-        possDesigns = [];
-        for z = 1 : (noStories)
-            aCheck = issorted(bestIndiMethod(:,2,z),'descend');
-            if aCheck == 1
-                possDesigns = [possDesigns, z];
+        for t = noStories : -1 : 2
+            if auxColumns(t-1,2) < auxColumns(t,2)
+                auxColumns(t-1,[2,3]) = auxColumns(t,[2,3]);
+                b = auxColumns(t-1,2); h = b;
+                areaRebar = auxColumns(t-1, 6);
+                barID = auxColumns(t-1, 1);
+                mAuxN = auxColumns(t-1, 8);
+%                 mAuxN = [];
+%                 for p = 1 : length(cases)
+%                     N_AxialN = DataDesign(DataDesign(:,1,1) == barID , 2, p);
+%                     M_RdN = MrdColumn(fck, fyk, b, h, areaRebar, N_AxialN);
+%                     mAuxN(end+1) = M_RdN;
+%                 end
+                auxColumns(t-1,8) = min(mAuxN);
+                
             end
-        end
-        
-        if isempty(possDesigns)
-            disp(['Cannot design this bars/column: ' num2str(barNames')]);
-            [row, col] = size(auxColumns);
-            auxColumns = zeros(row, col);
-        else
-            validDesigns = bestIndiMethod(:,:,possDesigns);
-            for z = 1 : size(validDesigns,3)
-                eval(z) = mean(bestIndiMethod(:,1,z));
-            end
-            [~, bestDesign]= min(eval);
-            auxColumns = bestIndiMethod(:,[2:end],bestDesign);
         end
     end
     

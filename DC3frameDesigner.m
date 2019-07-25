@@ -1,5 +1,5 @@
 %% DC3frameDesigner
-function [] = DC3frameDesigner(buildingName, fck, fyk, cover, seismicCases, folder, flag)
+function [] = DC3frameDesigner(buildingName, fck, fyk, cover, seismicCases, nonSeismicCases, folder, flag)
 %factor accounting for overstrength due to steel strain hardening and
 %confinement of the concrete of the compression zone of the section
 G_RD = 1.1;
@@ -15,6 +15,7 @@ fnElement = ['data\' buildingName '\connectivity.csv'] ;
 [~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
 clear buildingName fnData fnElement fnNodes
 seismicCasesIdx = find(ismember(cases, seismicCases));
+nonSeismicCasesIdx = find(ismember(cases, nonSeismicCases));
 loading = waitbar(1,loading,'Reading data','Name', 'DC3: Step 1 of 9'); pause(.5);
 %% STEP 2 - DESIGN BEAMS
 close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC3: Step 2 of 9'); pause(1);
@@ -80,11 +81,11 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : 2%length(cases)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            N_axial = DataDesign(barIndex, 2, k);
-            My_h = DataDesign(barIndex, 5, k);
-            Mz_b = DataDesign(barIndex, 6, k);
-            V_Ed = DataDesign(barIndex, 4, k);
+        for k = 1 : length(nonSeismicCasesIdx)
+            N_axial = DataDesign(barIndex, 2, nonSeismicCasesIdx(k));
+            My_h = DataDesign(barIndex, 5, nonSeismicCasesIdx(k));
+            Mz_b = DataDesign(barIndex, 6, nonSeismicCasesIdx(k));
+            V_Ed = DataDesign(barIndex, 4, nonSeismicCasesIdx(k));
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
@@ -101,6 +102,7 @@ for i = 1 : size(barsOfColumns,1)
     bigOrigWidth = max(bestIndi(:,1)); %biggest width on the individual iteration
     barName = barsOfColumns(i,1);
     barIndex = find(DataDesign(:,1,1) == barName);
+%     min
     for p = 1 : length(cases)
         N_axial = DataDesign(barIndex, 2, p);
         My_h = DataDesign(barIndex, 5, p);
@@ -108,7 +110,8 @@ for i = 1 : size(barsOfColumns,1)
         V_Ed = DataDesign(barIndex, 4, p);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
         gWidth = max(minWidth, bigOrigWidth);
-        [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);
+        
+        [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);%, givenLong);
         mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
     end
     [~, index] = max(mAux3(:,6));%best iteration for that bar
