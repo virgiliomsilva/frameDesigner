@@ -1,5 +1,5 @@
 %% DC1frameDesigner
-function [] = DC1frameDesigner(buildingName, fck, fyk, cover, nonSeismicCases folder)
+function [] = DC1frameDesigner(buildingName, fck, fyk, cover, nonSeismicCases, folder)
 tic; disp('Started');
 loading = waitbar(0,'Reading data','Name', 'DC1: Step 1 of 4');
 
@@ -9,7 +9,7 @@ fnElement = ['data\' buildingName '\connectivity.csv'] ;
 
 [~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
 clear buildingName fnData fnElement fnNodes
-% seismicCasesIdx = find(ismember(cases, seismicCases));
+nonSeismicCasesIdx = find(ismember(cases, nonSeismicCases));
 loading = waitbar(1,loading,'Reading data','Name', 'DC1: Step 1 of 4'); pause(1);
 %%
 close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC1: Step 2 of 4'); pause(1);
@@ -70,11 +70,11 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : 2%length(cases)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            N_axial = DataDesign(barIndex, 2, k);
-            My_h = DataDesign(barIndex, 5, k);
-            Mz_b = DataDesign(barIndex, 6, k);
-            V_Ed = DataDesign(barIndex, 4, k);
+        for k = 1 : length(nonSeismicCasesIdx)
+            N_axial = DataDesign(barIndex, 2, nonSeismicCasesIdx(k));
+            My_h = DataDesign(barIndex, 5, nonSeismicCasesIdx(k));
+            Mz_b = DataDesign(barIndex, 6, nonSeismicCasesIdx(k));
+            V_Ed = DataDesign(barIndex, 4, nonSeismicCasesIdx(k));
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
@@ -89,6 +89,8 @@ for i = 1 : size(barsOfColumns,1)
     bigOrigWidth = max(bestIndi(:,1)); %biggest width on the individual iteration
     barName = barsOfColumns(i,1);
     barIndex = find(DataDesign(:,1,1) == barName);
+    areaMinIt = bestIndi(1, 5);
+    givenLong = columnLongMin(areaMinIt);
     for p = 1 : length(cases)
         N_axial = DataDesign(barIndex, 2, p);
         My_h = DataDesign(barIndex, 5, p);
@@ -96,7 +98,7 @@ for i = 1 : size(barsOfColumns,1)
         V_Ed = DataDesign(barIndex, 4, p);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
         gWidth = max(minWidth, bigOrigWidth);
-        [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);
+        [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth, givenLong);
         mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
     end
     %best iteration for that bar, best reinforcement pattern
@@ -110,12 +112,14 @@ for i = 1 : size(barsOfColumns,1)
     for j = 2 : noStories
         barName = barsOfColumns(i,j);
         barIndex = find(DataDesign(:,1,1) == barName);
+        areaMinIt = bestIndi(j, 5);
+        givenLong = columnLongMin(areaMinIt);
         for p = 1 : length(cases)
             N_axial = DataDesign(barIndex, 2, p);
             My_h = DataDesign(barIndex, 5, p);
             Mz_b = DataDesign(barIndex, 6, p);
             V_Ed = DataDesign(barIndex, 4, p);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth, givenLong);
             mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
         %best iteration for that bar
@@ -188,16 +192,16 @@ for i = 1 : size(barsOfColumns,1)
             if auxColumns(t-1,2) < auxColumns(t,2)
                 auxColumns(t-1,[2,3]) = auxColumns(t,[2,3]);
                 b = auxColumns(t-1,2); h = b;
-                areaRebar = auxColumns(t-1, 6);
-                barID = auxColumns(t-1, 1);
-                mAuxN = auxColumns(t-1, 8);
+%                 areaRebar = auxColumns(t-1, 6);
+%                 barID = auxColumns(t-1, 1);
+%                 mAuxN = auxColumns(t-1, 8);
 %                 mAuxN = [];
 %                 for p = 1 : length(cases)
 %                     N_AxialN = DataDesign(DataDesign(:,1,1) == barID , 2, p);
 %                     M_RdN = MrdColumn(fck, fyk, b, h, areaRebar, N_AxialN);
 %                     mAuxN(end+1) = M_RdN;
 %                 end
-                auxColumns(t-1,8) = min(mAuxN);
+%                 auxColumns(t-1,8) = min(mAuxN);
                 
             end
         end
