@@ -75,16 +75,17 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : length(nonSeismicCasesIdx)
-            N_axial = DataDesign(barIndex, 2, nonSeismicCasesIdx(k));
-            My_h = DataDesign(barIndex, 5, nonSeismicCasesIdx(k));
-            Mz_b = DataDesign(barIndex, 6, nonSeismicCasesIdx(k));
-            V_Ed = DataDesign(barIndex, 4, nonSeismicCasesIdx(k));
+        %%%%%%%% MODIFICADO AQUI
+        for k = 1 : length(cases)
+            N_axial = DataDesign(barIndex, 2, cases(k));
+            My_h = DataDesign(barIndex, 5, cases(k));
+            Mz_b = DataDesign(barIndex, 6, cases(k));
+            V_Ed = DataDesign(barIndex, 4, cases(k));
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC2columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
         %best iteration for that bar, width
-        [~, index] = max(mAux1(:,1));
+        [~, index] = max(mAux1(:,6)); %%%%%%%%%%%%%%%%%%%%%%%%%%%
         %best individual bars of that column
         bestIndi(j,:) = mAux1(index,:);
     end
@@ -109,6 +110,7 @@ for i = 1 : size(barsOfColumns,1)
     end
     
     %best iteration for that bar
+    mAux3 = sortrows(mAux3,[6 1],{'descend' 'ascend'});
     [~, index] = max(mAux3(:,6));
     auxColumns = mAux3(index,:);
     
@@ -131,6 +133,7 @@ for i = 1 : size(barsOfColumns,1)
             mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
         %best iteration for that bar
+        mAux3 = sortrows(mAux3,[6 1],{'descend' 'ascend'});
         [~, index] = max(mAux3(:,6));
         auxColumns(j,:) = mAux3(index,:);
         

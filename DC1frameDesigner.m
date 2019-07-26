@@ -43,7 +43,7 @@ for i = 1 : length(beamDesiOrd)
     [V_Rd, conIndex2] = max(sAux(:,4)); %best F_rd
     [V_RdMid, conIndex3] = max(sAuxMid(:,4));
     
-    shearPhi = sAux(conIndex2, 1);
+    shearPhi = sAux(conIndex2, 1); 
     shearSpac = sAux(conIndex2, 2);
     shearLegs = sAux(conIndex2, 3);
     
@@ -70,16 +70,17 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        for k = 1 : length(nonSeismicCasesIdx)
-            N_axial = DataDesign(barIndex, 2, nonSeismicCasesIdx(k));
-            My_h = DataDesign(barIndex, 5, nonSeismicCasesIdx(k));
-            Mz_b = DataDesign(barIndex, 6, nonSeismicCasesIdx(k));
-            V_Ed = DataDesign(barIndex, 4, nonSeismicCasesIdx(k));
+        % %%%%%%%%%%%%%%% MODIFICADO AQUI
+        for k = 1 : length(cases)
+            N_axial = DataDesign(barIndex, 2, cases(k));
+            My_h = DataDesign(barIndex, 5, cases(k));
+            Mz_b = DataDesign(barIndex, 6, cases(k));
+            V_Ed = DataDesign(barIndex, 4, cases(k));
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
         %best iteration for that bar, max dimension
-        [~, index] = max(mAux1(:,1));
+        [~, index] = max(mAux1(:,6)); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %best individual bars of that column
         bestIndi(j,:) = mAux1(index,:);
     end
@@ -102,6 +103,7 @@ for i = 1 : size(barsOfColumns,1)
         mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
     end
     %best iteration for that bar, best reinforcement pattern
+    mAux3 = sortrows(mAux3,[6 1],{'descend' 'ascend'});
     [~, index] = max(mAux3(:,6));
     auxColumns = mAux3(index,:);
     
@@ -123,6 +125,7 @@ for i = 1 : size(barsOfColumns,1)
             mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
         %best iteration for that bar
+        mAux3 = sortrows(mAux3,[6 1],{'descend' 'ascend'});
         [~, index] = max(mAux3(:,6));
         auxColumns(j,:) = mAux3(index,:);
         
@@ -190,8 +193,9 @@ for i = 1 : size(barsOfColumns,1)
         
         for t = noStories : -1 : 2
             if auxColumns(t-1,2) < auxColumns(t,2)
-                auxColumns(t-1,[2,3]) = auxColumns(t,[2,3]);
-                b = auxColumns(t-1,2); h = b;
+                auxColumns(t-1,[1,2]) = auxColumns(t,[1,2]);
+%                 b = auxColumns(t-1,2); 
+%                 h = b;
 %                 areaRebar = auxColumns(t-1, 6);
 %                 barID = auxColumns(t-1, 1);
 %                 mAuxN = auxColumns(t-1, 8);
@@ -221,8 +225,8 @@ for i = 1 : size(barsOfColumns,1)
     count = count + 1;
     loading = waitbar(count / size(barsOfColumns,1),loading,'Columns progress','Name', 'DC1: Step 3 of 4');
 end
-save([folder '\DC1columnsIt1.mat'],'columns')
-save([folder '\DC1columnsIt1mid.mat'],'columnsMid')
+% save([folder '\DC1columnsIt1.mat'],'columns')
+% save([folder '\DC1columnsIt1mid.mat'],'columnsMid')
 %%
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC1: Step 4 of 4'); pause(1);
 toSeismo(columns(:,[1:5, 9:11]), beams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder)
