@@ -70,17 +70,17 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        % %%%%%%%%%%%%%%% MODIFICADO AQUI
-        for k = 1 : length(cases)
-            N_axial = DataDesign(barIndex, 2, cases(k));
-            My_h = DataDesign(barIndex, 5, cases(k));
-            Mz_b = DataDesign(barIndex, 6, cases(k));
-            V_Ed = DataDesign(barIndex, 4, cases(k));
+        
+        for k = nonSeismicCasesIdx
+            N_axial = DataDesign(barIndex, 2, k);
+            My_h = DataDesign(barIndex, 5, k);
+            Mz_b = DataDesign(barIndex, 6, k);
+            V_Ed = DataDesign(barIndex, 4, k);
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
         %best iteration for that bar, max dimension
-        [~, index] = max(mAux1(:,6)); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        [~, index] = max(mAux1(:,5));   %area %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %best individual bars of that column
         bestIndi(j,:) = mAux1(index,:);
     end
