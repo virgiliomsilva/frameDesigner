@@ -225,8 +225,8 @@ for i = 1 : size(barsOfColumns,1)
     count = count + 1;
     loading = waitbar(count / size(barsOfColumns,1),loading,'Columns progress','Name', 'DC1: Step 3 of 4');
 end
-% save([folder '\DC1columnsIt1.mat'],'columns')
-% save([folder '\DC1columnsIt1mid.mat'],'columnsMid')
+save([folder '\DC1columnsIt1.mat'],'columns')
+save([folder '\DC1columnsIt1mid.mat'],'columnsMid')
 %%
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC1: Step 4 of 4'); pause(1);
 toSeismo(columns(:,[1:5, 9:11]), beams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder)
