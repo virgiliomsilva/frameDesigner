@@ -79,8 +79,8 @@ for i = 1 : size(barsOfColumns,1)
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
-        %best iteration for that bar, max dimension
-        [~, index] = max(mAux1(:,5));   %area %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %best iteration for that bar, reinfPercFin
+        [~, index] = max(mAux1(:,6));  
         %best individual bars of that column
         bestIndi(j,:) = mAux1(index,:);
     end

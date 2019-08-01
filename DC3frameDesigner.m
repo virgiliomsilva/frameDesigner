@@ -81,7 +81,6 @@ for i = 1 : size(barsOfColumns,1)
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
         barIndex = find(DataDesign(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        %%%%%%%%%%%%%%% MODIFICADO AQUI
         for k = nonSeismicCasesIdx
             N_axial = DataDesign(barIndex, 2, k);
             My_h = DataDesign(barIndex, 5, k);
@@ -90,8 +89,8 @@ for i = 1 : size(barsOfColumns,1)
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
-        %choose best based on biggest dimension
-        [~, index] = max(mAux1(:,5));% area %%%%%%%%%%%%%%%%%%%%%%
+        %choose best based on reinfPercFin
+        [~, index] = max(mAux1(:,6));
         bestIndi(j,:) = mAux1(index,:);
     end
     clear areaRebar barIndex barName index M_Rd mAux1 minWidth My_h Mz_b N_axial ...
@@ -158,7 +157,7 @@ for i = 1 : size(barsOfColumns,1)
     %   if it fails will try another method to design it
     sorted = issorted(auxColumns(:,1),'descend');
     if ~sorted
-        %         disp('First design method failed')
+        disp('First design method failed')
         %         %         it will take a lot of time but will fix possibly it
         %         %         this method will design the column so many times as individual
         %         %         bars of that column and then, per page of the matrix will put a

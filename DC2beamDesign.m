@@ -36,18 +36,38 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCon
 
         %long rebar iterations
         if reinfPerc > 0 && reinfPerc < .8
+%             for j = 1 : size(longReinforce,1)
+%                 if longReinforce(j,3) - reinfArea > 0
+%                     diffAuxL(j) = longReinforce(j,3) - reinfArea;
+%                 else
+%                     diffAuxL(j) = 1;
+%                 end
+%                 [~, minIndex] = min(diffAuxL);
+%                 longReinfNo = longReinforce(minIndex,2); %for each zone (comp or tension)
+%                 longReinfPhi = longReinforce(minIndex,1);
+%                 longReinfArea = longReinforce(minIndex,3);
+%             end
+            %%
             for j = 1 : size(longReinforce,1)
-                if longReinforce(j,3) - reinfArea > 0
-                    diffAuxL(j) = longReinforce(j,3) - reinfArea;
+                aDiff = longReinforce(j,3) - reinfArea;
+                if aDiff > 0
+                    diffAux(j) = aDiff;
                 else
-                    diffAuxL(j) = 1;
+                    diffAux(j) = 10;
                 end
-                [~, minIndex] = min(diffAuxL);
-                longReinfNo = longReinforce(minIndex,2); %for each zone (comp or tension)
-                longReinfPhi = longReinforce(minIndex,1);
-                longReinfArea = longReinforce(minIndex,3);
             end
-
+            
+            [vals, idxs]= mink(diffAux,3);
+            nAux = [longReinforce(idxs,:), idxs', vals'];
+            [~, minIndex] = min(nAux(:,2));
+            row = nAux(minIndex,4);
+            
+            %if nAux(minIndex,5) > 1; h = h + incr; b = h; continue; end
+            longReinfNo = longReinforce(row,2);
+            longReinfPhi = longReinforce(row,1);
+            longReinfArea = longReinforce(row,3);
+            
+            %%
             if longReinfNo <= 4
                 spaces = longReinfNo - 1;
                 clearance = spaces * max([longReinfPhi/1000, dMax + .005, .02]);

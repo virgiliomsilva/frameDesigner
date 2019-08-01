@@ -7,12 +7,12 @@ clc
 fck = 30 ;
 fyk = 400 ;
 cover = .035 ;
-%% DC1
-buildingName1 = 'regular_DC1' ;
-seismicCases = [24:31];
-folder = ['output\' buildingName1];
-mkdir(folder);
-DC1frameDesigner(buildingName1, fck, fyk, cover, seismicCases, folder);
+% %% DC1
+% buildingName1 = 'regular_DC1' ;
+% seismicCases = [24:31];
+% folder = ['output\' buildingName1];
+% mkdir(folder);
+% DC1frameDesigner(buildingName1, fck, fyk, cover, seismicCases, folder);
 % %% DC2
 % buildingName2 = 'regular_DC2' ;
 % seismicCases = [24:31];
@@ -26,3 +26,5 @@ DC1frameDesigner(buildingName1, fck, fyk, cover, seismicCases, folder);
 % mkdir(folder);
 % DC3frameDesigner(buildingName3, fck, fyk, cover, seismicCases, folder, 'no');
 % % system('shutdown -s')
+
+[sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, 1000, 100, 80);
