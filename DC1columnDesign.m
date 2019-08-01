@@ -39,10 +39,10 @@ b = h;
 incr = .05;
 
 diffe = -1; areaRebar = 2; AsMax = 1;  %values to make while loop start
-% 
-% if ~exist('maxiter','var')
-%     maxIter=10;
-% end
+
+if ~exist('maxiter','var')
+    maxIter=10;
+end
 
 while diffe < 0 || areaRebar > AsMax% || AsMin > areaRebar
     redAxial   = N_Axial / (b * h * fcd * 1000);
@@ -50,7 +50,7 @@ while diffe < 0 || areaRebar > AsMax% || AsMin > areaRebar
     redBenMom2 = My_h / (h * b^2 * fcd * 1000);
     bigRedBenMom = max(redBenMom1, redBenMom2);
     smallRedBenMom = min(redBenMom1, redBenMom2);
-    redBenMomRatio = max([smallRedBenMom / bigRedBenMom, .001]);
+    redBenMomRatio = max([smallRedBenMom / bigRedBenMom, .01]);
     
     reinfPerc = max([abaco(redBenMomRatio, redAxial, bigRedBenMom), .005]);
     AsAbacus = reinfPerc * b * h * fcd / fyd;
@@ -159,7 +159,7 @@ switch noRebar
         end
 end
 
-[~, minIndexS] = min(shearReinforce(:,4));
+[minDiffS, minIndexS] = min(shearReinforce(:,4));
 shearReinfPhi = shearReinforce(minIndexS, 1);
 shearReinfSpac = shearReinforce(minIndexS, 3);
 shearReinfLoops = shearReinforce(minIndexS, 2);
