@@ -1,6 +1,7 @@
 *.ini
 .gitattributes
 .git
+apagar.m
 toSeismo\*.csv
 toSave\*.csv
 data\*.csv
@@ -14,4 +15,3 @@ deprecated/
 info/deprecated
 info/abacus_REBAP83
 *.pdf
-apagar.m

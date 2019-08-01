@@ -53,23 +53,18 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .55
     reinfArea = max([AsMin, AsAbacus]);
     
     for j = 1 : size(longReinforce,1)
-        aDiff = longReinforce(j,3) - reinfArea;
-        if aDiff > 0
-            diffAux(j) = aDiff;
+        if longReinforce(j,3) - reinfArea > 0
+            diffAux(j) = longReinforce(j,3) - reinfArea;
         else
-            diffAux(j) = 10;
+            diffAux(j) = 1000;
         end
     end
     
-    [vals, idxs]= mink(diffAux,3);
-    nAux = [longReinforce(idxs,:), idxs', vals'];
-    [~, minIndex] = min(nAux(:,2));
-    row = nAux(minIndex,4);
-    
-    if nAux(minIndex,5) > 1; h = h + incr; b = h; continue; end
-    noRebar = longReinforce(row,2);
-    phiRebar = longReinforce(row,1);
-    areaRebar = longReinforce(row,3);
+    [val, minIndex] = min(diffAux);
+    if val > 1; h = h + incr; b = h; continue; end
+    noRebar = longReinforce(minIndex,2);
+    phiRebar = longReinforce(minIndex,1);
+    areaRebar = longReinforce(minIndex,3);
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
     AsMax = .04 * h * b; %EC2 & EC8
