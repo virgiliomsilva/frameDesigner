@@ -4,9 +4,9 @@
 function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong)
 sCondition = 0;
 %% INFO SELECTION
-if (fyk == 500 & fck > 12 & fck < 50)
+if (fyk == 500 && fck > 12 && fck < 50)
     abaco = importdata('info\abacus_REBAP83_C12_C50_S500.mat');
-elseif (fyk == 400 & fck > 12 & fck < 50)
+elseif (fyk == 400 && fck > 12 && fck < 50)
     abaco = importdata('info\abacus_REBAP83_C12_C50_S400.mat');
 else
     error('Materials pair not supported!')
@@ -20,7 +20,7 @@ if exist('givenLong', 'var')
     %         longReinforce = columnComp(givenLong);
     %     end
 else
-    longReinforce  = importdata('info\steel_columnEC8.csv');
+    longReinforce  = importdata('info\steel_columnDC1.csv');
     longReinforce = longReinforce(:,[1:3]);
 end
 
@@ -28,6 +28,9 @@ fcd = fck / 1.5;
 fyd = fyk / 1.15;
 fywd = fyd;
 dMax = .03; %maximum aggregate dimension
+
+My_h = abs(My_h);
+Mz_b = abs(Mz_b);
 %% DIMENSIONS & LONG REBAR
 if exist ('givenWidth','var')
     h = givenWidth;

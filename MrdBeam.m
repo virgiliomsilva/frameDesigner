@@ -1,8 +1,8 @@
 %% hardest way to get the MRD of a beam!!
 function [MRD] = MrdBeam (fck, fyk, cover, b, h, A1, A2) 
-if (fyk == 500 & fck > 12 & fck < 50)
+if (fyk == 500 && fck > 12 && fck < 50)
     abaco = importdata('info\abacus_C12_50A500_allBend_int.mat');
-elseif (fyk == 400 & fck > 12 & fck < 50)
+elseif (fyk == 400 && fck > 12 && fck < 50)
     abaco = importdata('info\abacus_C12_50A400_allBend_int.mat');
 else
     error('Materials pair not supported!')

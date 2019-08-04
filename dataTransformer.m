@@ -1,4 +1,4 @@
-function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesign, element, noTimesNaming, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes)
+function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, DataDesignMax, DataDesignMin, element, noTimesNaming, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes)
     %% IMPORT DATA
     unsData = importdata(fnData);
     nodes = importdata(fnNodes);
@@ -37,10 +37,12 @@ function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, Data
     clear BAR CASE FX FY FZ i LENGTH mixed MY MZ unsData
     %% COMBINATION LOADS
     finalData = zeros(noBars, 7, noCases);
+    finalDataMin = zeros(noBars, 7, noCases);
 
     for i = 1 : noCases
         for j = 1 : noBars
             finalData(j,:,i) = max(allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i)));
+            finalDataMin(j,:,i) = min(allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i)));
         end
     end
 
@@ -221,7 +223,7 @@ function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, Data
     clear AA anoAuxBlock barsToAdd i j k nCol nColNew noRows
     %% LOADS FOR COLUMNS AND FAKE BEAMS
     % get the load envelope for each BEAM and COLUMN
-    DataDesign = [];
+    DataDesignMax = []; DataDesignMin = [];
     for k = 1: noCases
         rowz = 1;
         for j = unique(finalData(:, 1, 1)).'
@@ -233,8 +235,25 @@ function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, Data
                 end
             end
             auxMax = max(auxBlock,[],1);
-            DataDesign(rowz, :, k) = auxMax;
+            DataDesignMax(rowz, :, k) = auxMax;
             clear auxBlock; % prevent values of previous bar being there
+            rowz = rowz + 1;
+        end
+    end
+    
+    for k = 1: noCases
+        rowz = 1;
+        for j = unique(finalDataMin(:, 1, 1)).'
+            row = 1;
+            for i = 1 : noBars
+                if j == finalDataMin(i, 1, k)
+                    auxBlock(row, :) = finalDataMin(i, :, k);
+                    row = row + 1;
+                end
+            end
+            auxMax = min(auxBlock,[],1);
+            DataDesignMin(rowz, :, k) = auxMax;
+            clear auxBlock;
             rowz = rowz + 1;
         end
     end

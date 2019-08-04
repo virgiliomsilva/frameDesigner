@@ -23,6 +23,9 @@ fcd = fck / 1.5;
 fyd = fyk / 1.15;
 fywd = fyd;
 dMax = .03; %maximum aggregate dimension
+
+My_h = abs(My_h);
+Mz_b = abs(Mz_b);
 %% DIMENSIONS & LONG REBAR
 if exist ('givenWidth','var')
     h = givenWidth;

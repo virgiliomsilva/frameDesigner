@@ -6,7 +6,7 @@ function [longReinforce] = columnLongMin(areaMin, flag)
         longReinforce = longReinforce(:,[1:3]);
         longReinforce = longReinforce(longReinforce(:,3) >= areaMin, :);
     elseif nargin == 2
-        longReinforce = importdata('info\steel_column.csv');
+        longReinforce = importdata('info\steel_columnDC1.csv');
         longReinforce = longReinforce(:,[1:3]);
         longReinforce = longReinforce(longReinforce(:,3) >= areaMin, :);
     end

@@ -6,6 +6,8 @@ shearReinforce = importdata('info\steel_shear.csv');
 fcd = fck / 1.5;
 fyd = fyk / 1.15;
 fywd = fyd;
+
+Fz_Ed = abs(Fz_Ed);
 %% STIRRUPS
 
 %possible loops due to rebar configuration

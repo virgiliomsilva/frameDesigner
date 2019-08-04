@@ -16,6 +16,9 @@ function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCon
     fyd = fyk / 1.15;
     fywd = fyd;
     dMax = .03;
+
+    M_Ed = abs(M_Ed);
+    Fz_Ed = abs(Fz_Ed);
     %% DIMENSIONS & LONG REBAR
     h = .25;
     b = .2;

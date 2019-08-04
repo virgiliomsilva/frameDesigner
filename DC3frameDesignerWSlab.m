@@ -1,5 +1,5 @@
 %% DC3frameDesigner
-function [] = DC3frameDesigner(buildingName, fck, fyk, cover, seismicCases, nonSeismicCases, folder, flag)
+function [] = DC3frameDesigner(buildingName, fck, fyk, cover, seismicCases, nonSeismicCases, folder, flag, slabTopReinf)
 %factor accounting for overstrength due to steel strain hardening and
 %confinement of the concrete of the compression zone of the section
 G_RD = 1.1;
@@ -12,7 +12,7 @@ fnData = ['data\' buildingName '\dataset.csv'] ;
 fnNodes = ['data\' buildingName '\nodes.csv'] ;
 fnElement = ['data\' buildingName '\connectivity.csv'] ;
 
-[~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, DataDesignMin, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
+[~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
 clear buildingName fnData fnElement fnNodes
 
 allCasesIdx = [1:length(cases)];
@@ -220,7 +220,7 @@ for i = 1 : size(barsOfColumns,1)
         for t = noStories : -1 : 2
             if auxColumns(t-1,2) < auxColumns(t,2)
                 auxColumns(t-1,[1,2]) = auxColumns(t,[1,2]);
-%                 b = auxColumns(t-1,2); h = b;
+                b = auxColumns(t-1,2); h = b;
 %                 areaRebar = auxColumns(t-1, 6);
 %                 barID = auxColumns(t-1, 1);
                 
@@ -296,6 +296,13 @@ for i = 1 : size(nodes,1)
     bendRdX = 0;
     for j = 1 : length(barsX)
         [beamRow, ~] = find(beams(:,1) == barsX(j));
+        %%
+        myLength = 0;
+        = DataDesign(barIndex, 7, 1);
+        
+        
+        
+        %%
         bendRdX = bendRdX + beams(beamRow, 6);
     end
     
@@ -376,8 +383,8 @@ for i = 1 : size(barsOfColumns,1)
         % momendo resistente        % se eu dimensionar para o menor bending resistent        % necessário, só numa direção (hack: relação dos momentos tem de
         for j = 1 : size(toGive,1)
             matAux = [];
-            for k = 1 : length(seismicCases)
-                N_axial = DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx(k));
+            for k = seismicCasesIdx
+                N_axial = DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, k);
                 My_h = toGive(j, 2); Mz_b = 0;
                 [columnsRow,~] = find(columns(:,1) == toGive(j,1));
                 gWidth = columns(columnsRow, 2);
@@ -441,8 +448,8 @@ for i = 1 : size(barsOfColumns,1)
                     barID = primeColumns(t-1, 1);
                     
                     mAuxN = [];
-                    for p = seismicCasesIdx
-                        N_AxialN = DataDesign(DataDesign(:,1,1) == barID , 2, p);
+                    for p = 1 : length(seismicCases)
+                        N_AxialN = DataDesign(DataDesign(:,1,1) == barID , 2, seismicCasesIdx(p));
                         M_RdN = MrdColumn(fck, fyk, b, h, areaRebar, N_AxialN);
                         mAuxN(end+1) = M_RdN;
                     end

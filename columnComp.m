@@ -3,15 +3,15 @@
 % the other possible patterns suitable to merge with the given on.
 % Pattern may be inserted as total area or number of long reinforcement
 % rods and phi;
-% Flag inputs may be 'EC2' or 'EC8'
+% Flag inputs may be 'DC1' or 'EC8'
 % Input4 may be inserted to eleiminate possibilities with lesser area
 function [newComp] = columnComp(input1, input2, input3, input4)
     if nargin == 2
         %input1 area  %input2 flag
         if strcmpi(input2, 'EC8')
             table = importdata('info\steel_columnEC8.csv');
-        elseif strcmpi(input2, 'EC2')
-            table = importdata('info\steel_column.csv');
+        elseif strcmpi(input2, 'DC1')
+            table = importdata('info\steel_columnDC1.csv');
         end
 
         % get reference pattern
@@ -21,8 +21,8 @@ function [newComp] = columnComp(input1, input2, input3, input4)
         %input1 no long reinfo  %input2 phi long reinf %input3 flag
         if strcmpi(input3, 'EC8')
             table = importdata('info\steel_columnEC8.csv');
-        elseif strcmpi(input3, 'EC2')
-            table = importdata('info\steel_column.csv');
+        elseif strcmpi(input3, 'DC1')
+            table = importdata('info\steel_columnDC1.csv');
         end
 
         % get rference pattern
@@ -35,8 +35,8 @@ function [newComp] = columnComp(input1, input2, input3, input4)
         % if input 4 exists eliminate possible area below that one
         if strcmpi(input3, 'EC8')
             table = importdata('info\steel_columnEC8.csv');
-        elseif strcmpi(input3, 'EC2')
-            table = importdata('info\steel_column.csv');
+        elseif strcmpi(input3, 'DC1')
+            table = importdata('info\steel_columnDC1.csv');
         end
 
         % get rference pattern
