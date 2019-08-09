@@ -33,6 +33,6 @@ seismicCases = [24:31];
 slabTopReinf = 0.000314159; % top reinforcement slab m2/m       #10//.25
 folder = ['output\' buildingName4];
 mkdir(folder);
-DC3frameDesigner(buildingName4, fck, fyk, cover, seismicCases, nonSeismicCases, folder, 'no', slabTopReinf);
+DC3frameDesignerWSlab (buildingName4, fck, fyk, cover, seismicCases, nonSeismicCases, folder, 'no', slabTopReinf);
 %%
-% system('shutdown -s')
+system('shutdown -s')

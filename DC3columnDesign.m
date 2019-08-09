@@ -1,7 +1,7 @@
 %% DC3 COLUMNS DESIGN FUNCTION
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
-function [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong, Vshear, given_h, longReinfN, longReinfPh)
+function [sec_h, sec_b, noRebar, phiRebar, areaRebar, Ro, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong, Vshear, given_h, longReinfN, longReinfPh)
 %% INFO SELECTION
 if (fyk == 500 && fck > 12 && fck < 50)
     abaco = importdata('info\abacus_REBAP83_C12_C50_S500.mat');
@@ -78,6 +78,8 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .55
 
 end
 sec_h = h - incr;    sec_b = sec_h ;
+
+Ro = areaRebar/ (sec_b * sec_h);
 
 % M_Rd uni axial
 reinfPercFin = areaRebar * fyd / (sec_b * sec_h * fcd);

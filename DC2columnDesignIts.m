@@ -69,7 +69,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .65 %| AsMin > areaRebar)%& n
     areaRebar = longReinforce(minIndex,3);
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
-    AsMax = .04 * h * b; %EC2 & EC8
+    AsMax = .02 * h * b; %pre design
         
     redAxial = N_Axial / (b * h * fcd * 1000);
     

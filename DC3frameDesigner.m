@@ -12,7 +12,7 @@ fnData = ['data\' buildingName '\dataset.csv'] ;
 fnNodes = ['data\' buildingName '\nodes.csv'] ;
 fnElement = ['data\' buildingName '\connectivity.csv'] ;
 
-[~, barsOfColumns, beamDesiOrd, ~, ~, DataDesign, DataDesignMin, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
+[~, barsOfColumns, beamDesiOrd, ~, ~, DataDesignMax, DataDesignMin, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
 clear buildingName fnData fnElement fnNodes
 
 allCasesIdx = [1:length(cases)];
@@ -24,53 +24,38 @@ loading = waitbar(1,loading,'Reading data','Name', 'DC3: Step 1 of 9'); pause(.5
 close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC3: Step 2 of 9'); pause(1);
 beams = []; beamsMid = [];
 for i = 1 : length(beamDesiOrd)
-    barIndex = find(DataDesign(:,1,1) == beamDesiOrd(i));
+    barIndex = find(DataDesignMax(:,1,1) == beamDesiOrd(i));
     
+    %longitudinal rebar
     mAux = [];
     for j = allCasesIdx
-        M_Ed = DataDesign(barIndex, 5, j);
+        M_Ed = DataDesignMax(barIndex, 5, j);
         [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition] = DC3beamDesign(fck, fyk , cover, M_Ed, 0);
-        mAux(j,:) = [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition];
+        mAux = [mAux;[sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition]];
+        
+        M_Ed = DataDesignMin(barIndex, 5, j);
+        [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition] = DC3beamDesign(fck, fyk , cover, M_Ed, 0);
+        mAux = [mAux;[sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition]];
     end
     [M_rd, conIndex] = max(mAux(:,6)); %best M_rd
     
-    sAux = []; sAuxMid = [];
-    for j = allCasesIdx
-        Fz_Ed = DataDesign(barIndex, 4, j);
-        given_h = mAux(conIndex, 1);
-        given_b = mAux(conIndex, 2);
-        longRebarN = mAux(conIndex, 3);
-        longRebarPh = mAux(conIndex, 4);
-        [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd_it, sCondition] = DC3beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
-        sAux(j,:) = [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd_it, sCondition, Fz_Ed];
-        
-        %midStirrups
-        [shearReinfPhiMid, shearReinfSpacMid, shearReinfLoopsMid, V_RdMid] = DC3beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo);
-        sAuxMid(j,:) = [shearReinfPhiMid, shearReinfSpacMid, shearReinfLoopsMid, V_RdMid, Fz_Ed];
-    end
+    %stirrups
+    given_h = mAux(conIndex, 1);
+    given_b = mAux(conIndex, 2);
+    longRebarN = mAux(conIndex, 3);
+    longRebarPh = mAux(conIndex, 4);
     
-    [V_Rd, conIndex2] = max(sAux(:,4)); %best F_rd
-    [V_RdMid, conIndex3] = max(sAuxMid(:,4));
+    Fz_Ed = max(max(abs(DataDesignMax(barIndex, 4, allCasesIdx)),abs(DataDesignMin(barIndex, 4, allCasesIdx))));
     
-    shearPhi = sAux(conIndex2, 1);
-    shearSpac = sAux(conIndex2, 2);
-    shearLegs = sAux(conIndex2, 3);
+    [~, ~, ~, ~, ~, ~, ~, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition] = DC3beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
+    %midStirrups
+    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC3beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo);
+
+    beams(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition, Fz_Ed];
+    beamsMid(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
     
-    shearPhiMid = sAuxMid(conIndex3, 1);
-    shearSpacMid = sAuxMid(conIndex3, 2);
-    shearLegsMid = sAuxMid(conIndex3, 3);
-    
-    beams(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd, sAux(conIndex2, 5), sAux(conIndex2, 6)];
-    beamsMid(end+1,:) = [DataDesign(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
-    
-    clear barIndex conIndex conIndex2 conIndex3 Fz_Ed given_b given_h i j longRebarN ...
-        longRebarPh longRebarArea longReinfArea longReinfNo longReinfPhi M_Ed M_rd M_Rd mAux ...
-        roMinCondition sAux sAuxMid sCondition sec_b sec_h shearLegs shearLegsMid ...
-        shearPhi shearPhiMid shearReinfLoops shearReinfLoopsMid shearReinfPhi ...
-        shearReinfPhiMid shearReinfSpac shearReinfSpacMid shearSpac shearSpacMid ...
-        V_Rd V_Rd_it V_RdMid
-    
-    waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC3: Step 2 of 9');
+    waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC1: Step 2 of 4');
+    break
 end
 save([folder '\DC3beamsIt1.mat'],'beams');
 save([folder '\DC3beamsIt1mid.mat'],'beamsMid'); clear beamsMid
@@ -82,18 +67,27 @@ for i = 1 : size(barsOfColumns,1)
     barNames = []; % to append in the end!!!
     for j = 1 : noStories %design of all bars of a column!
         barName = barsOfColumns(i,j); barNames = [barNames; barName];
-        barIndex = find(DataDesign(:,1,1) == barName);
+        barIndex = find(DataDesignMax(:,1,1) == barName);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-        %%%%%%%%%%%%%%% MODIFICADO AQUI
+
+        mAux1 = [];
         for k = allCasesIdx
-            N_axial = DataDesign(barIndex, 2, k);
-            My_h = DataDesign(barIndex, 5, k);
-            Mz_b = DataDesign(barIndex, 6, k);
-            V_Ed = DataDesign(barIndex, 4, k);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
-            mAux1(k,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
+            N_axial = DataDesignMax(barIndex, 2, k);
+            My_h = DataDesignMax(barIndex, 5, k);
+            Mz_b = DataDesignMax(barIndex, 6, k);
+            V_Ed = DataDesignMax(barIndex, 4, k);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesignIts(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            mAux1 = [mAux1;[sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
+
+            N_axial = DataDesignMin(barIndex, 2, k);
+            My_h = DataDesignMin(barIndex, 5, k);
+            Mz_b = DataDesignMin(barIndex, 6, k);
+            V_Ed = DataDesignMin(barIndex, 4, k);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesignIts(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            mAux1 = [mAux1;[sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
         end
         %choose best based on biggest dimension
+        mAux1 = sortrows(mAux1,[5 1],{'descend' 'ascend'});
         [~, index] = max(mAux1(:,1));
         bestIndi(j,:) = mAux1(index,:);
     end
@@ -105,14 +99,14 @@ for i = 1 : size(barsOfColumns,1)
     %   bottom bar
     bigOrigWidth = max(bestIndi(:,1)); %biggest width on the individual iteration
     barName = barsOfColumns(i,1);
-    barIndex = find(DataDesign(:,1,1) == barName);
+    barIndex = find(DataDesignMax(:,1,1) == barName);
     areaMinIt = bestIndi(1, 5);
     givenLong = columnLongMin(areaMinIt);
     for p = allCasesIdx
-        N_axial = DataDesign(barIndex, 2, p);
-        My_h = DataDesign(barIndex, 5, p);
-        Mz_b = DataDesign(barIndex, 6, p);
-        V_Ed = DataDesign(barIndex, 4, p);
+        N_axial = DataDesignMax(barIndex, 2, p);
+        My_h = DataDesignMax(barIndex, 5, p);
+        Mz_b = DataDesignMax(barIndex, 6, p);
+        V_Ed = DataDesignMax(barIndex, 4, p);
         try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
         gWidth = max(minWidth, bigOrigWidth);
         
@@ -133,18 +127,18 @@ for i = 1 : size(barsOfColumns,1)
     
     for j = 2 : noStories
         barName = barsOfColumns(i,j);
-        barIndex = find(DataDesign(:,1,1) == barName);
+        barIndex = find(DataDesignMax(:,1,1) == barName);
         areaMinIt = bestIndi(j, 5);
         givenLong = columnLongMin(areaMinIt);
         for p = allCasesIdx
-            N_axial = DataDesign(barIndex, 2, p);
-            My_h = DataDesign(barIndex, 5, p);
-            Mz_b = DataDesign(barIndex, 6, p);
-            V_Ed = DataDesign(barIndex, 4, p);
+            N_axial = DataDesignMax(barIndex, 2, p);
+            My_h = DataDesignMax(barIndex, 5, p);
+            Mz_b = DataDesignMax(barIndex, 6, p);
+            V_Ed = DataDesignMax(barIndex, 4, p);
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth, givenLong);
             mAux3(p,:) = [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
         end
-        mAux3 = sortrows(mAux3,[6 1],{'descend' 'ascend'});
+        mAux3 = sortrows(mAux3,[5 1],{'descend' 'ascend'});
         [~, index] = max(mAux3(:,6));
         auxColumns(j,:) = mAux3(index,:);
         
@@ -249,7 +243,8 @@ for i = 1 : size(barsOfColumns,1)
     columnsMid = [columnsMid; [barNames, auxColumns(:,[1:7]), auxColumnsMid]];
     
     clear auxColumns auxColumnsMid barNames bestIndi noRebar phiRebar ...
-        sec_h shearReinfAreaMid shearReinfLoopsMid shearReinfPhiMid shearReinfSpacMid sorted j
+        sec_h shearReinfAreaMid shearReinfLoopsMid shearReinfPhiMid ...
+        shearReinfSpacMid sorted j
     
     count = count + 1;
     loading = waitbar(count / size(barsOfColumns,1),loading,'Columns progress','Name', 'DC3: Step 3 of 9');
@@ -268,7 +263,7 @@ for i = 1 : size(columns,1)
     
     mAux = [];
     for j = seismicCasesIdx
-        N_Axial = DataDesign(DataDesign(:,1,1) == columns(i,1) , 2, j);
+        N_Axial = DataDesignMax(DataDesignMax(:,1,1) == columns(i,1) , 2, j);
         M_Rd = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial);
         mAux(end+1) = M_Rd;
     end
@@ -283,7 +278,7 @@ close(loading); loading = waitbar(0,'Initializing bending comparisons','Name', '
 increNeed = [];
 for i = 1 : size(nodes,1)
     %skip base points and on the top floor the verification is not needed
-    if nodes(i, 5) == 0 || nodes(i, 5) == noStories
+    if nodes(i, 5) == 0 %|| nodes(i, 5) == noStories
         continue
     end
     
@@ -377,7 +372,7 @@ for i = 1 : size(barsOfColumns,1)
         for j = 1 : size(toGive,1)
             matAux = [];
             for k = 1 : length(seismicCases)
-                N_axial = DataDesign(DataDesign(:,1,1) == toGive(j,1), 2, seismicCasesIdx(k));
+                N_axial = DataDesignMax(DataDesignMax(:,1,1) == toGive(j,1), 2, seismicCasesIdx(k));
                 My_h = toGive(j, 2); Mz_b = 0;
                 [columnsRow,~] = find(columns(:,1) == toGive(j,1));
                 gWidth = columns(columnsRow, 2);
@@ -389,7 +384,7 @@ for i = 1 : size(barsOfColumns,1)
                 V_Ed = columns(columnsRow, 15);
                 matAux = [matAux;toGive(j, 1), sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
             end
-            matAux = sortrows(matAux,[7 2],{'descend' 'ascend'});
+            matAux = sortrows(matAux,[6 2],{'descend' 'ascend'});
             [~, indexu] = max(matAux(:, 7));
             finalColumn = matAux(indexu,:);
             newColumns = [newColumns; finalColumn];
@@ -442,7 +437,7 @@ for i = 1 : size(barsOfColumns,1)
                     
                     mAuxN = [];
                     for p = seismicCasesIdx
-                        N_AxialN = DataDesign(DataDesign(:,1,1) == barID , 2, p);
+                        N_AxialN = DataDesignMax(DataDesignMax(:,1,1) == barID , 2, p);
                         M_RdN = MrdColumn(fck, fyk, b, h, areaRebar, N_AxialN);
                         mAuxN(end+1) = M_RdN;
                     end
@@ -557,7 +552,7 @@ for i = 1 : size(barsOfColumns,1)
             areaRebar = primeColumns(j, 6);
             sec_b = primeColumns(j,2); sec_h = sec_b;
             primeColumns(j, 7) = areaRebar * fyk / (sec_b  * sec_h * fck);
-            N_axial = max(DataDesign(DataDesign(:,1,1) == primeColumns(j,1), 2, seismicCasesIdx));
+            N_axial = max(DataDesignMax(DataDesignMax(:,1,1) == primeColumns(j,1), 2, seismicCasesIdx));
             primeColumns(j, 8) = MrdColumn(fck, fyk, sec_b, sec_h, areaRebar, N_axial);
             
             longReinfN = primeColumns(j, 5);
@@ -571,8 +566,7 @@ for i = 1 : size(barsOfColumns,1)
             N_axial sCondition sec_b sec_h shearReinfArea shearReinfLoops ...
             shearReinfPhi shearReinfSpac Ved Vrd
     end
-    
-    
+        
     columns13 = [columns13; primeColumns];
     
     loading = waitbar(i / (size(barsOfColumns,1)),loading,'Column re-reinforcement progress','Name', 'DC3: Step 6 of 9');
@@ -587,13 +581,13 @@ seismicBeams = []; seismicBeamsMidShear = [];
 for i = 1 : length(beamDesiOrd)
     % get beam, get floor, get length, get direction
     % for each one get node, for each node get the sum
-    barIndex = find(DataDesign(:,1,1) == beamDesiOrd(i));
+    barIndex = find(DataDesignMax(:,1,1) == beamDesiOrd(i));
     
     MRb = beams(beams(:,1) == beamDesiOrd(i), 6);
     res = element(element(:,1) == beamDesiOrd(i), [2, 3, 4]);
     node1 = res(1); node2 = res(2); direction = res(3);
     auxNode = [node1, node2];
-    cLength = DataDesign(barIndex, 7, 1);
+    cLength = DataDesignMax(barIndex, 7, 1);
     
     Mid = [];
     for k = 1 : 2
@@ -624,7 +618,7 @@ for i = 1 : length(beamDesiOrd)
         direction j k MRb node1 node2 res row
     
     %equilibrium
-    Vseismic = max(DataDesign(barIndex, 4, seismicCasesIdx));
+    Vseismic = max(DataDesignMax(barIndex, 4, seismicCasesIdx));
     Vshear = Vseismic + sum(Mid) / cLength;
     
     % shear reinforcement
@@ -653,88 +647,84 @@ close(loading); loading = waitbar(0,'Initializing column seismic equilibrium','N
 pilars = setxor(beamDesiOrd, element(:,1));
 seismicColumns = []; seismicColumnsMidShear = [];
 for i = 1 : length(pilars)
-    barRow = find(columns13(:,1) == pilars(i));
+    %bar info
+    barRow = find(columns(:,1) == pilars(i));
     res = element(element(:,1) == pilars(i), [2 3]);
     node1 = res(1); node2 = res(2);
     auxNode = [node1, node2];
-    cLength = DataDesign(DataDesign(:,1,1) == pilars(i) , 7, 1);
+    cLength = DataDesignMax(DataDesignMax(:,1,1) == pilars(i) , 7, 1);
     
-    for k = 1 : 2
-        %obtain max sum of bending moment on top each node of the column
-        [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 3); barsZ = element(row,1);
-        bendRdZaux = 0;
-        for j = 1 : length(barsZ)
-            b = columns13(columns13(:,1) == barsZ(j), 3);
-            h = columns13(columns13(:,1) == barsZ(j), 2);
-            areaRebar = columns13(columns13(:,1) == barsZ(j), 6);
-            
-            mAuxS = [];
-            for p = 1 : length(seismicCases)
-                N_AxialS = DataDesign(DataDesign(:,1,1) == pilars(i) , 2, seismicCasesIdx(p));
-                M_RdS = MrdColumn(fck, fyk, b, h, areaRebar, N_AxialS);
-                mAuxS(end+1) = M_RdS;
-            end
-            
-            bendRdZaux = bendRdZaux + max(mAuxS);
-        end
-        bendRdZ(k) = bendRdZaux;
-        
-        %obtain max sum of bending moment on top each node of the beams, each direction
-        [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 1); barsX = element(row,1);
-        bendRdXaux = 0;
-        for j = 1 : length(barsX)
-            M_Rd = seismicBeams(seismicBeams(:,1) == barsX(j), 6);
-            bendRdXaux = bendRdXaux + M_Rd;
-        end
-        bendRdX(k) = bendRdXaux;
-        
-        [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 2); barsY = element(row,1);
-        bendRdYaux = 0;
-        for j = 1 : length(barsY)
-            M_Rd = seismicBeams(seismicBeams(:,1) == barsY(j), 6);
-            bendRdYaux = bendRdYaux + M_Rd;
-        end
-        bendRdY(k) = bendRdYaux;
-    end
-    
-    clear areaRebar auxNode b barsX barsY barsZ bendRdXaux bendRdYaux ...
-        bendRdZaux h j M_Rd M_RdS mAuxS N_AxialS node1 node2 p res row
-    
-    [~, maxIndex] = max([sum(bendRdX), sum(bendRdY)]);
-    bendMomsaux = [bendRdX; bendRdY];
-    bendMomsBeam = bendMomsaux(maxIndex,:);
-    
-    b = columns13(barRow, 3);
-    h = columns13(barRow, 2);
-    areaRebar = columns13(barRow, 6);
-    
-    mAuxS = [];
+    % for each combination
+    Vseismo = [];
     for p = seismicCasesIdx
-        N_AxialS = DataDesign(DataDesign(:,1,1) == pilars(i) , 2, p);
-        M_RdS = MrdColumn(fck, fyk, b, h, areaRebar, N_AxialS);
-        mAuxS(end+1) = M_RdS;
-    end
-    MRc = max(mAuxS);
-    
-    for j = 1 : 2
-        if bendMomsBeam(j) > bendRdZ(j)
-            Mid(k) = G_RD * MRc;
-        else
-            Mid(k) = G_RD * MRc * (bendMomsBeam(j) / bendRdZ(j));
+        %Mrc of the given bar
+        b = columns(barRow, 3);
+        h = columns(barRow, 2);
+        areaRebar = columns(barRow, 6);
+        N_Axial = DataDesignMax(barRow , 2, p);
+        Mrc = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial);
+        
+        %obtain max sum of bending moment on top each node of the column
+        for k = 1 : 2
+            [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 3); barsZ = element(row,1);
+            bendRdZaux = 0;
+            for j = 1 : length(barsZ)
+                b = columns(columns(:,1) == barsZ(j), 3);
+                h = columns(columns(:,1) == barsZ(j), 2);
+                areaRebar = columns(columns(:,1) == barsZ(j), 6);
+                N_Axial = DataDesignMax(DataDesignMax(:,1,1) == barsZ(j) , 2, p);
+                M_Rd = MrdColumn(fck, fyk, b, h, areaRebar, N_Axial);
+                bendRdZaux = bendRdZaux + M_Rd;
+            end
+            bendRdZ(k) = bendRdZaux;
+                
+            %obtain max sum of bending moment on top each node of the beams, each direction
+            [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 1); barsX = element(row,1);
+            bendRdXaux = 0;
+            for j = 1 : length(barsX)
+                M_Rd = beams(beams(:,1) == barsX(j), 6);
+                bendRdXaux = bendRdXaux + M_Rd;
+            end
+            bendRdX(k) = bendRdXaux;
+            
+            [row, ~] = find(element(:,[2 3]) == auxNode(k) & element(:,4) == 2); barsY = element(row,1);
+            bendRdYaux = 0;
+            for j = 1 : length(barsY)
+                M_Rd = beams(beams(:,1) == barsY(j), 6);
+                bendRdYaux = bendRdYaux + M_Rd;
+            end
+            bendRdY(k) = bendRdYaux;
         end
+        
+        for k = 1 : 2
+            if bendRdX(k) > bendRdZ(k)
+                MidX(k) = G_RD * Mrc;
+            else
+                MidX(k) = G_RD * Mrc * (bendRdX(k) / bendRdZ(k));
+            end
+        
+            if bendRdY(k) > bendRdZ(k)
+                MidY(k) = G_RD * Mrc;
+            else
+                MidY(k) = G_RD * Mrc * (bendRdY(k) / bendRdZ(k));
+            end
+        end
+    Vseismo = [Vseismo; sum(MidX)/cLength];
+    Vseismo = [Vseismo; sum(MidY)/cLength];
     end
+
+    Vseismo = abs(Vseismo);
+    Vshear = max(Vseismo);
     
-    Vshear = sum(Mid) / cLength;
-    
-    given_h = columns13(barRow, 2);
-    longReinfN = columns13(barRow, 4);
-    longReinfPh = columns13(barRow, 5);
+    given_h = columns(barRow, 2);
+    longReinfN = columns(barRow, 4);
+    longReinfPh = columns(barRow, 5);
     [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, 10, 10, 10, given_h, [longReinfPh,longReinfN,areaRebar], Vshear, given_h, longReinfN, longReinfPh);
-    seismicColumns = [seismicColumns; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
+    seismicColumns = [seismicColumns; [columns(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, Vshear]];
     
-    %mid shear
+    %seismic beams mid shear
     [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea] = DC3columnDesignMidShear(fck, fyk , cover, given_h, longReinfN, longReinfPh);
-    seismicColumnsMidShear = [seismicColumnsMidShear; [columns13(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, 0, 0]];
+    seismicColumnsMidShear = [seismicColumnsMidShear; [columns(barRow,[1:8]),shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, 0, 0, 0]];
     
     clear areaRebar b barRow bendMomsaux bendMomsBeam bendRdX bendRdY ...
         bendRdZ cLength h j k longReinfN longReinfPh M_RdS mAuxS maxIndex Mid ...

@@ -20,55 +20,32 @@ beams = []; beamsMid = [];
 for i = 1 : length(beamDesiOrd)
     barIndex = find(DataDesignMax(:,1,1) == beamDesiOrd(i));
     
+    %longitudinal rebar
     mAux = [];
     for j = allCasesIdx
         M_Ed = DataDesignMax(barIndex, 5, j);
         [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, 0);
         mAux = [mAux;[sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition]];
         
-        M_Ed = DataDesigMin(barIndex, 5, j);
+        M_Ed = DataDesignMin(barIndex, 5, j);
         [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, 0);
         mAux = [mAux;[sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition]];
     end
     [M_rd, conIndex] = max(mAux(:,6)); %best M_rd
     
-    sAux = []; sAuxMid = [];
-    for j = allCasesIdx
-        Fz_Ed = DataDesignMax(barIndex, 4, j);
-        given_h = mAux(conIndex, 1);
-        given_b = mAux(conIndex, 2);
-        longRebarN = mAux(conIndex, 3);
-        longRebarPh = mAux(conIndex, 4);
-        [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd_it, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
-        sAux = [sAux; [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd_it, sCondition, Fz_Ed]];
-        %midStirrups
-        [shearReinfPhiMid, shearReinfSpacMid, shearReinfLoopsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo);
-        sAuxMid = [sAuxMid; [shearReinfPhiMid, shearReinfSpacMid, shearReinfLoopsMid, V_RdMid, Fz_Ed]];
-        
-        Fz_Ed = DataDesignMin(barIndex, 4, j);
-        given_h = mAux(conIndex, 1);
-        given_b = mAux(conIndex, 2);
-        longRebarN = mAux(conIndex, 3);
-        longRebarPh = mAux(conIndex, 4);
-        [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd_it, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
-        sAux = [sAux; [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd_it, sCondition, Fz_Ed]];
-        %midStirrups
-        [shearReinfPhiMid, shearReinfSpacMid, shearReinfLoopsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo);
-        sAuxMid = [sAuxMid; [shearReinfPhiMid, shearReinfSpacMid, shearReinfLoopsMid, V_RdMid, Fz_Ed]];
-    end
+    %stirrups
+    given_h = mAux(conIndex, 1);
+    given_b = mAux(conIndex, 2);
+    longRebarN = mAux(conIndex, 3);
+    longRebarPh = mAux(conIndex, 4);
     
-    [V_Rd, conIndex2] = max(sAux(:,4)); %best F_rd
-    [V_RdMid, conIndex3] = max(sAuxMid(:,4));
+    Fz_Ed = max(max(abs(DataDesignMax(barIndex, 4, allCasesIdx)),abs(DataDesignMin(barIndex, 4, allCasesIdx))));
     
-    shearPhi = sAux(conIndex2, 1); 
-    shearSpac = sAux(conIndex2, 2);
-    shearLegs = sAux(conIndex2, 3);
-    
-    shearPhiMid = sAuxMid(conIndex3, 1);
-    shearSpacMid = sAuxMid(conIndex3, 2);
-    shearLegsMid = sAuxMid(conIndex3, 3);
-    
-    beams(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd, sAux(conIndex2, 5), sAux(conIndex2, 6)];
+    [~, ~, ~, ~, ~, ~, ~, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
+    %midStirrups
+    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo);
+
+    beams(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition, Fz_Ed];
     beamsMid(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
     
     waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC1: Step 2 of 4');
@@ -94,24 +71,24 @@ for i = 1 : size(barsOfColumns,1)
             My_h = DataDesignMax(barIndex, 5, k);
             Mz_b = DataDesignMax(barIndex, 6, k);
             V_Ed = DataDesignMax(barIndex, 4, k);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesignIts(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1 = [mAux1; [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
             
             N_axial = DataDesignMin(barIndex, 2, k);
             My_h = DataDesignMin(barIndex, 5, k);
             Mz_b = DataDesignMin(barIndex, 6, k);
             V_Ed = DataDesignMin(barIndex, 4, k);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesignIts(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1 = [mAux1; [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
         end
-        %best iteration for that bar, max dimension
-        [~, index] = max(mAux1(:,1)); 
-        %best individual bars of that column
+        %choose best based on biggest dimension
+        mAux1 = sortrows(mAux1,[5 1],{'descend' 'ascend'});
+        [~, index] = max(mAux1(:,1));
         bestIndi(j,:) = mAux1(index,:);
     end
     
     % #2 design from bottom to top - based on the biggest width of the best individuals
-    %bottom bar
+    %   bottom bar
     bigOrigWidth = max(bestIndi(:,1)); %biggest width on the individual iteration
     barName = barsOfColumns(i,1);
     barIndex = find(DataDesignMax(:,1,1) == barName);
@@ -138,15 +115,16 @@ for i = 1 : size(barsOfColumns,1)
         mAux3 = [mAux3; [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
     end
     %best iteration for that bar, best reinforcement pattern
-    mAux3 = sortrows(mAux3,[6 1],{'descend' 'ascend'});
+    mAux3 = sortrows(mAux3,[5 1],{'descend' 'ascend'});
     [~, index] = max(mAux3(:,6));
     auxColumns = mAux3(index,:);
     
-    %other bars
+    %   other bars
 %     try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
 %     gWidth = max(minWidth, min(floor(mAux3(index,1) * .9 * 20)/20, mAux3(index,1) - .05));
     
     for j = 2 : noStories
+        bigOrigWidth = max(bestIndi(:,j));
         barName = barsOfColumns(i,j);
         barIndex = find(DataDesignMax(:,1,1) == barName);
         areaMinIt = bestIndi(j, 5);
@@ -158,7 +136,7 @@ for i = 1 : size(barsOfColumns,1)
             Mz_b = DataDesignMax(barIndex, 6, p);
             V_Ed = DataDesignMax(barIndex, 4, p);
             try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-            gWidth = max(minWidth, bigOrigWidth);%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%fixing this
+            gWidth = max(minWidth, bigOrigWidth);
             [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, gWidth, givenLong);
             mAux3 = [mAux3; [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
             
@@ -176,11 +154,11 @@ for i = 1 : size(barsOfColumns,1)
         [~, index] = max(mAux3(:,6));
         auxColumns(j,:) = mAux3(index,:);
         
-        try
-            try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
-            gWidth = max(minWidth, min(floor(mAux3(index,1) * .9 * 20)/20, mAux3(index,1) - .05));
-            %             givenLong = mAux3(index, 6);
-        end
+%         try
+%             try [minWidth] = minWidFind(barName, element, beams); catch minWidth = .2; end
+%             gWidth = max(minWidth, min(floor(mAux3(index,1) * .9 * 20)/20, mAux3(index,1) - .05));
+%             %             givenLong = mAux3(index, 6);
+%         end
     end
     
     % check if dimensions agree (no bigger dimension on top of the column)
