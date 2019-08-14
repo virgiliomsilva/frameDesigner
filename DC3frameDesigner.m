@@ -658,7 +658,7 @@ for i = 1 : length(beamDesiOrd)
     end
     
     Vseismo = abs(Vseismo);
-    Vshear = max(Vseismo);
+    Vshear = max(max(Vseismo));
     
     % shear reinforcement
     barIndex = find(beams(:,1) == beamDesiOrd(i));
@@ -755,7 +755,7 @@ for i = 1 : length(pilars)
     end
     
     Vseismo = abs(Vseismo);
-    Vshear = max(Vseismo);
+    Vshear = max(max(Vseismo));
     
     given_h = columns13(barRow, 2);
     longReinfN = columns13(barRow, 4);

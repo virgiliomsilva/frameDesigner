@@ -26,9 +26,6 @@ close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC3Slab: Step 
 beams = []; beamsMid = [];
 for i = 1 : length(beamDesiOrd)
     barIndex = find(DataDesignMax(:,1,1) == beamDesiOrd(i));
-    if i < 52
-        continue
-    end
     %longitudinal rebar
     mAux = [];
     for j = allCasesIdx
@@ -770,7 +767,7 @@ for i = 1 : length(pilars)
     end
     
     Vseismo = abs(Vseismo);
-    Vshear = max(Vseismo);
+    Vshear = max(max(Vseismo));
     
     given_h = columns13(barRow, 2);
     longReinfN = columns13(barRow, 4);
