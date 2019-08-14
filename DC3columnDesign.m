@@ -59,7 +59,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .55
         if longReinforce(j,3) - reinfArea > 0
             diffAux(j) = longReinforce(j,3) - reinfArea;
         else
-            diffAux(j) = 1000;
+            diffAux(j) = 10;
         end
     end
     

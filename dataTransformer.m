@@ -41,9 +41,19 @@ function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, Data
 
     for i = 1 : noCases
         for j = 1 : noBars
-            finalData(j,:,i) = max(allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i)));
-            finalDataMin(j,:,i) = min(allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i)));
+            AuxA = allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i));
+            [~, idx] = max(AuxA(:,2));
+            finalData(j,:,i) = AuxA(idx, :);%max(allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i)));
+            
+            %             [~, idx] = min(AuxA(:,2));
+            if idx == 1
+                other = 2;
+            else
+                other = 1
+            end
+            finalDataMin(j,:,i) = AuxA(other, :);%min(allData(allData(:,1,cases(1)) == nameBars(j),:,cases(i)));
         end
+        clear AuxA
     end
 
     clear allData i j nameBars
@@ -236,7 +246,7 @@ function [barsOfBeams, barsOfColumns, beamDesiOrd, beamsOnBeams, fakeBeams, Data
             end
             auxMax = max(auxBlock,[],1);
             DataDesignMax(rowz, :, k) = auxMax;
-            clear auxBlock; % prevent values of previous bar being there
+            clear auxBlock;
             rowz = rowz + 1;
         end
     end
