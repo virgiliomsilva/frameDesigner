@@ -38,10 +38,10 @@ b = h;
 %incremento on dimension for each iteration
 incr = .05;
 
-%values to make while loop start
+%values to make while-loop start
 diffe = -1; areaRebar = 2; AsMax = 1; redAxial = 1;
 
-while diffe < 0 || areaRebar > AsMax || redAxial > .55 
+while diffe < 0 || areaRebar > AsMax || redAxial > .40%%%%%%%%%%
     redAxial   = N_Axial / (b * h * fcd * 1000);
     redBenMom1 = Mz_b / (b * h^2 * fcd * 1000);
     redBenMom2 = My_h / (h * b^2 * fcd * 1000);
@@ -52,8 +52,8 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .55
     reinfPerc = max([abaco(redBenMomRatio, redAxial, bigRedBenMom), .005]);
     AsAbacus = reinfPerc * b * h * fcd / fyd;
     
-    AsMin = max([.1 * N_Axial / (fyd * 1000), .01 * b * h]);% first condition ec8 second eurocode 8 otherwise 0.2%
-    reinfArea = max([AsMin, AsAbacus]);
+    AsMin = max([.1 * N_Axial / (fyd * 1000), .02 * b * h]);% first condition ec8 second eurocode 8 otherwise 0.2%
+    reinfArea = max([AsMin, AsAbacus]);%%%%%%%%
     
     for j = 1 : size(longReinforce,1)
         if longReinforce(j,3) - reinfArea > 0
@@ -70,7 +70,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .55
     areaRebar = longReinforce(minIndex,3);
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
-    AsMax = .02 * h * b; %pre design
+    AsMax = .04 * h * b; %pre design
         
     redAxial = N_Axial / (b * h * fcd * 1000);
     
