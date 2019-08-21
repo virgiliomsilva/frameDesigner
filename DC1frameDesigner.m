@@ -44,7 +44,7 @@ for i = 1 : length(beamDesiOrd)
     
     [~, ~, ~, ~, ~, ~, ~, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
     %midStirrups
-    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo);
+    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
     
     beams(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition, Fz_Ed];
     beamsMid(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];

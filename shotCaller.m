@@ -21,7 +21,7 @@ folder = ['output\' buildingName2];
 mkdir(folder);
 DC2frameDesigner(buildingName2, fck, fyk, cover, seismicVerticalLoadCase, seismicCases, nonSeismicCases, folder);
 %% DC3
-buildingName3 = 'regular_DC3' ;
+buildingName3 = 'regularIT_DC3' ;
 seismicVerticalLoadCase = 40;
 nonSeismicCases = 23;%[22,23];
 seismicCases = [24:31];
@@ -29,7 +29,7 @@ folder = ['output\' buildingName3];
 mkdir(folder);
 DC3frameDesigner(buildingName3, fck, fyk, cover, seismicVerticalLoadCase, seismicCases, nonSeismicCases, folder, 'no');
 %% DC3 w/ SLAB
-buildingName4 = 'regular_DC3slab' ;
+buildingName4 = 'regularIT_DC3slab' ;
 seismicVerticalLoadCase = 40;
 nonSeismicCases = 23;%[22,23];
 seismicCases = [24:31];

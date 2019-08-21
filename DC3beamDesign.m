@@ -106,6 +106,7 @@ if exist('given_b', 'var'); sec_b = given_b; end
 if exist('given_h', 'var'); sec_h = given_h; end
 if exist('longReinfN', 'var'); longReinfNo = longReinfN; end
 if exist('longReinfPh', 'var'); longReinfPhi = longReinfPh; end
+longReinfArea = longReinfNo * pi * (longReinfPhi/2000)^2;
 
 %possible loops due to rebar configuration
 shearReinforce(ismember(shearReinforce(:,2), [6 7]), :) = [] ;%no beam configuration support 6 or 7 stirrups
@@ -139,29 +140,39 @@ shearReinforce(shearReinforce(:,2) < minNoLegs, :) = [];
 % solution calculation
 z = sec_h - 2 * (cover + .02);  %approximated
 
-redVed = Fz_Ed / (sec_b * z * 1000);
-redVrd25 = (.6/4.35) * fck * (1 - fck/250);
-redVrd1 = (.6/3) * fck * (1 - fck/250);
+Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
+Vrds = Asw_sMin * z * fywd * 1000 * 2.5;
 
-if redVrd25 > redVed
-    Asw_s25 = redVed * sec_h / (fywd * 2.5);
-    Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
-    Asw_s = max([Asw_sMin, Asw_s25]);
-    theta = acot(2.5);
-elseif redVrd1 > redVed
-    theta = .5 * asin(redVed / (.20 * fck * (1 - fck/250)));
-    Asw_stheta = redVed * sec_h / (fywd * theta);
-    Asw_sMin = .08*sqrt(fck)/fyk  * sec_b;
-    Asw_s = max([Asw_sMin, Asw_stheta]);
+kFactor = min(1 + sqrt(.2/d), 2);
+roL = min(longReinfArea / (sec_b * sec_h), .02);
+Vrdc1 = .12 * kFactor * (100 * roL * fck)^(1/3) ;
+Vrdc2 = .035 * kFactor ^ 1.5 * sqrt(fck);
+Vrdc = max(Vrdc1, Vrdc2) * sec_b * sec_h;
+
+VRd = max(Vrdc, Vrds);
+
+cotTheta = 2.5;
+miu = .6 * (1 - fck/250);
+if VRd > Fz_Ed
+    Asw_s = Asw_sMin;
+else
+    VRd_max = sec_b * z * miu * fcd * 1000 / (2.5 + 1/2.5);
+    if VRd_max > Fz_Ed
+        Asw_s = Fz_Ed / (z * fywd * 1000 * 2.5);
+    else
+        sol = solve(sec_b * z * miu * fcd * 1000 / (x + 1/x) == Fz_Ed, x);
+        cotTheta = symsToCotTheta(sol);
+        Asw_s = Fz_Ed / (z * fywd * 1000 * cotTheta);
+    end
 end
 
 %minimum optimization for steel usage (p.82)
 diffAuxS = zeros(size(shearReinforce,1),1);
 for k = 1 : size(shearReinforce,1)
-    if (shearReinforce(k,4) - Asw_s) > 0
+    if shearReinforce(k,4) - Asw_s > 0
         diffAuxS(k,1) = shearReinforce(k,4) - Asw_s;
     else
-        diffAuxS(k,1) = 1;
+        diffAuxS(k,1) = 1000;
     end
 end
 
@@ -171,11 +182,14 @@ shearReinfPhi = shearReinforce(minIndexS, 1);
 shearReinfSpac = shearReinforce(minIndexS, 3);
 shearReinfLoops = shearReinforce(minIndexS, 2);
 shearReinfArea = shearReinforce(minIndexS, 4);
+
 if shearReinfPhi == 8
     sCondition = sCondition8;
 elseif shearReinfPhi == 10
     sCondition = sCondition10;
 end
 
-V_Rd = min(shearReinfArea * z * (fywd * 1000) * cot(theta) / shearReinfSpac, 1 * sec_b * z * .6 *(1 - fck/250) * fcd  * 1000 / (cot(theta) + tan(theta)));
+VRd_max = sec_b * z * miu * fcd * 1000 / (cotTheta + 1/cotTheta);
+Vrds = shearReinfArea * z * fywd * 1000 * cotTheta;
+V_Rd = min (VRd_max, Vrds);
 end
