@@ -160,6 +160,7 @@ else
     if VRd_max > Fz_Ed
         Asw_s = Fz_Ed / (z * fywd * 1000 * 2.5);
     else
+        syms x
         sol = solve(sec_b * z * miu * fcd * 1000 / (x + 1/x) == Fz_Ed, x);
         cotTheta = symsToCotTheta(sol);
         Asw_s = Fz_Ed / (z * fywd * 1000 * cotTheta);

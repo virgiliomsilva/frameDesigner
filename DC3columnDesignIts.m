@@ -52,7 +52,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .40%%%%%%%%%%
     reinfPerc = max([abaco(redBenMomRatio, redAxial, bigRedBenMom), .005]);
     AsAbacus = reinfPerc * b * h * fcd / fyd;
     
-    AsMin = max([.1 * N_Axial / (fyd * 1000), .02 * b * h]);% first condition ec8 second eurocode 8 otherwise 0.2%
+    AsMin = max([.1 * N_Axial / (fyd * 1000), .01 * b * h]);% first condition ec8 second eurocode 8 otherwise 0.2%
     reinfArea = max([AsMin, AsAbacus]);%%%%%%%%
     
     for j = 1 : size(longReinforce,1)

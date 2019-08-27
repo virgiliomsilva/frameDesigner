@@ -778,7 +778,7 @@ save([folder '\DC3columnsIt3SeismicEq.mat'],'seismicColumns');
 save([folder '\DC3columnsIt3SeismicEqMid.mat'],'seismicColumnsMidShear');
 %% STEP 9 - EXPORT RESULTS TO CSV FOR SEISMOSTRUCT
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC3: Step 9 of 9'); pause(1);
-toSeismo(seismicColumns(:,[1:5, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder);
+toSeismo(seismicColumns(:,[1:5, 9:11]), seismicBeams(:,[1:5, 8:10]), nodes, element, stories, DataDesignMin, DataDesignMax, seismicVerticalLoadCaseIdx, fck, fyk, cover, folder);
 loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'DC3: Step 9 of 9');
 %% FINISH
 time = toc; save([folder '\time.mat'],'time');

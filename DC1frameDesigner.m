@@ -1,5 +1,5 @@
 %% DC1frameDesigner
-function [] = DC1frameDesigner(buildingName, fck, fyk, cover, nonSeismicCases, folder)
+function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicVerticalLoadCase, nonSeismicCases, folder)
 tic; disp('Started DC1');
 loading = waitbar(0,'Reading data','Name', 'DC1: Step 1 of 4');
 
@@ -11,6 +11,7 @@ fnElement = ['data\' buildingName '\connectivity.csv'] ;
 clear buildingName fnData fnElement fnNodes
 
 allCasesIdx = [1:length(cases)];
+seismicVerticalLoadCaseIdx = find(ismember(cases, seismicVerticalLoadCase));
 nonSeismicCasesIdx = find(ismember(cases, nonSeismicCases));
 
 loading = waitbar(1,loading,'Reading data','Name', 'DC1: Step 1 of 4'); pause(1);
@@ -246,7 +247,7 @@ save([folder '\DC1columnsIt1.mat'],'columns')
 save([folder '\DC1columnsIt1mid.mat'],'columnsMid')
 %%
 close(loading); loading = waitbar(0,'Updating and writing to Seismo','Name', 'DC1: Step 4 of 4'); pause(1);
-toSeismo(columns(:,[1:5, 9:11]), beams(:,[1:5, 8:10]), nodes, element, stories, fck, fyk, cover, folder)
+toSeismo(columns(:,[1:5, 9:11]), beams(:,[1:5, 8:10]), nodes, element, stories, DataDesignMin, DataDesignMax, seismicVerticalLoadCaseIdx, fck, fyk, cover, folder);
 loading = waitbar(1, loading,'Updating and writing to Seismo','Name', 'DC1: Step 4 of 4');
 %%
 time = toc; save([folder '\time.mat'],'time');

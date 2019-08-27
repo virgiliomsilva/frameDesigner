@@ -8,10 +8,11 @@ fyk = 400 ; %GPa
 cover = .035 ; %m
 %% DC1
 buildingName1 = 'regular_DC1' ;
+seismicVerticalLoadCase = 40;
 nonSeismicCases = 23;%[22,23];
 folder = ['output\' buildingName1];
 mkdir(folder);
-DC1frameDesigner(buildingName1, fck, fyk, cover, nonSeismicCases, folder);
+DC1frameDesigner(buildingName1, fck, fyk, cover, seismicVerticalLoadCase,nonSeismicCases, folder);
 %% DC2
 buildingName2 = 'regular_DC2' ;
 seismicVerticalLoadCase = 40;
@@ -29,7 +30,7 @@ folder = ['output\' buildingName3];
 mkdir(folder);
 DC3frameDesigner(buildingName3, fck, fyk, cover, seismicVerticalLoadCase, seismicCases, nonSeismicCases, folder, 'no');
 %% DC3 w/ SLAB
-buildingName4 = 'regularIT_DC3slab' ;
+buildingName4 = 'tenerIT_DC3slab' ;
 seismicVerticalLoadCase = 40;
 nonSeismicCases = 23;%[22,23];
 seismicCases = [24:31];

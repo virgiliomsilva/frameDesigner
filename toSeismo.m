@@ -1,4 +1,4 @@
-function [] = toSeismo(columns, beams, nodes, element, stories, fck, fyk, cover, folder)
+function [] = toSeismo(columns, beams, nodes, element, stories, DataMin, DataMax, massIndex, fck, fyk, cover, folder)
 %% sections init
 sections = {};
 %% type columns
@@ -59,12 +59,12 @@ writetable(cell2table(nodesSeismo), [folder '\03_nodes.csv'],'WriteVariableNames
 %% element connectivity
 for i = 1 : size(element,1)
     if element(i,4) == 3
-        [q, sec] = ismember(columns(columns(:,1) == element(i,1), [2:8]), columnTypesAux, 'rows');
+        [~, sec] = ismember(columns(columns(:,1) == element(i,1), [2:8]), columnTypesAux, 'rows');
         px = element(i,2);
         py = element(i,3);
         elemConnectivity(i, [1:6]) = {element(i,1), "Column" + sec, px + "   " + py + "   " + "deg=0.00","0.00   0.00   0.00   0.00   0.00   0.00", [],"-1e20   1e20"};
     else
-        [q, sec] = ismember(beams(beams(:,1) == element(i,1), [2:8]), beamTypesAux, 'rows');
+        [~, sec] = ismember(beams(beams(:,1) == element(i,1), [2:8]), beamTypesAux, 'rows');
         px = element(i,2);
         py = element(i,3);
         elemConnectivity(i, [1:6]) = {element(i,1), "Beam" + sec, px + "   " + py + "   " + "deg=0.00","0.00   0.00   0.00   0.00   0.00   0.00", [],"-1e20   1e20"};
@@ -94,3 +94,34 @@ for i = 1 : size(nodes,1)
 end
 
 writetable(cell2table(restraints), [folder '\06_restraints.csv'],'WriteVariableNames',false);
+%% mass of model
+massToSeismo = {};
+for i = 1 : size(nodes,1)
+    if nodes(i, 5) == 0
+        continue
+    end
+
+    [row, ~] = find(element(:,[2 3]) == nodes(i,1) & element(:,4) == 3);
+    barsZ = element(row,1);
+    
+    noBars = length(barsZ);
+    
+    switch noBars
+        case 1
+            auxA = DataMin(DataMin(:, 1, 1) == barsZ, 2, massIndex);
+        case 2
+            auxA = zeros(4,1);
+            for j = 1 : length(barsZ)
+                auxA(j) = DataMax(DataMax(:, 1, 1) == barsZ(j), 2, massIndex);
+                auxA(j+2) = DataMin(DataMin(:, 1, 1) == barsZ(j), 2, massIndex);
+            end
+            auxA = sortrows(auxA);            
+            auxA = auxA(3) - auxA(2);
+    end
+    
+    val = round(auxA/9.81,2);
+    
+    massToSeismo(end+1, [1 : 10]) = {"m" + i, val + " " + val + " " + val + " 0.00 0.00 0.00", "None", [], "m" + i, "m" + i, i, "-", "-", "-1e20   1e20"};
+end
+
+writetable(cell2table(massToSeismo), [folder '\massToSeismo.csv'],'WriteVariableNames',false);

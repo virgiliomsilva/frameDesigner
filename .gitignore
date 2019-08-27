@@ -116,3 +116,9 @@ output/regularIT_DC3/DC3beamsIt2SeismicEq.mat
 output/regularIT_DC3/DC3beamsIt1mid.mat
 output/regularIT_DC3/DC3beamsIt1.mat
 output/regularIT_DC3/columnsDel.mat
+output/tenerIT_DC3slab/massToSeismo.csv
+output/tenerIT_DC3slab/DC3beamsIt1mid.mat
+output/tenerIT_DC3slab/DC3beamsIt1.mat
+data/tenerIT_DC3slab/nodes.csv
+data/tenerIT_DC3slab/dataset.csv
+data/tenerIT_DC3slab/connectivity.csv
