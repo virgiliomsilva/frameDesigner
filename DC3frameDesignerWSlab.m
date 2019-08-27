@@ -399,7 +399,7 @@ for i = 1 : size(barsOfColumns,1)
     clear auxElement
     
     % iterations
-    while ~all(table(:,8) < 0)%while there is a "needed" bigger than what it is
+    while ~all(table(:,8) < 3)%while there is a "needed" bigger than what it is
         [~, index] = max(table(:, 8));
         toGive(:,1) = [table(index, 2); table(index,4)];
         toGive(:,2) = [table(index, 7)*(table(index, 3)/table(index, 6)); table(index, 7)*(table(index, 5)/table(index, 6))];
