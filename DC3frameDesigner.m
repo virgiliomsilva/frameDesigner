@@ -78,14 +78,14 @@ for i = 1 : size(barsOfColumns,1)
             My_h = DataDesignMax(barIndex, 5, k);
             Mz_b = DataDesignMax(barIndex, 6, k);
             V_Ed = DataDesignMax(barIndex, 4, k);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesignIts(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1 = [mAux1;[sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
             
             N_axial = DataDesignMin(barIndex, 2, k);
             My_h = DataDesignMin(barIndex, 5, k);
             Mz_b = DataDesignMin(barIndex, 6, k);
             V_Ed = DataDesignMin(barIndex, 4, k);
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC3columnDesignIts(fck, fyk , cover, N_axial, My_h, Mz_b, minWidth);
             mAux1 = [mAux1;[sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed]];
         end
         %choose best based on biggest dimension

@@ -41,7 +41,7 @@ incr = .05;
 %values to make while-loop start
 diffe = -1; areaRebar = 2; AsMax = 1; redAxial = 1;
 
-while diffe < 0 || areaRebar > AsMax || redAxial > .40%%%%%%%%%%
+while diffe < 0 || areaRebar > AsMax || redAxial > .50%%%%%%%%%%
     redAxial   = N_Axial / (b * h * fcd * 1000);
     redBenMom1 = Mz_b / (b * h^2 * fcd * 1000);
     redBenMom2 = My_h / (h * b^2 * fcd * 1000);
@@ -52,7 +52,7 @@ while diffe < 0 || areaRebar > AsMax || redAxial > .40%%%%%%%%%%
     reinfPerc = max([abaco(redBenMomRatio, redAxial, bigRedBenMom), .005]);
     AsAbacus = reinfPerc * b * h * fcd / fyd;
     
-    AsMin = max([.1 * N_Axial / (fyd * 1000), .01 * b * h]);% first condition ec8 second eurocode 8 otherwise 0.2%
+    AsMin = max([.1 * N_Axial / (fyd * 1000), .02 * b * h]);% first condition ec8 second eurocode 8 otherwise 0.2%
     reinfArea = max([AsMin, AsAbacus]);%%%%%%%%
     
     for j = 1 : size(longReinforce,1)

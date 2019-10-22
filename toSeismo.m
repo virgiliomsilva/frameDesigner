@@ -124,4 +124,4 @@ for i = 1 : size(nodes,1)
     massToSeismo(end+1, [1 : 10]) = {"m" + i, val + " " + val + " " + val + " 0.00 0.00 0.00", "None", [], "m" + i, "m" + i, i, "-", "-", "-1e20   1e20"};
 end
 
-writetable(cell2table(massToSeismo), [folder '\massToSeismo.csv'],'WriteVariableNames',false);
+writetable(cell2table(massToSeismo), [folder '\07_massToSeismo.csv'],'WriteVariableNames',false);

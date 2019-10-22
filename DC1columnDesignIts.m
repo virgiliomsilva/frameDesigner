@@ -58,7 +58,7 @@ while diffe < 0 || areaRebar > AsMax% || AsMin > areaRebar
     reinfPerc = max([abaco(redBenMomRatio, redAxial, bigRedBenMom), .005]);
     AsAbacus = reinfPerc * b * h * fcd / fyd;
     
-    AsMin = max([.1 * N_Axial / (fyd * 1000), .01 * b * h]);% first condition?? second eurocode 8 otherwise 0.2%
+    AsMin = max([.1 * N_Axial / (fyd * 1000), .02 * b * h]);% first condition?? second eurocode 8 otherwise 0.2%
     reinfArea = max([AsMin, AsAbacus]);
     
     for j = 1 : size(longReinforce,1)
@@ -76,7 +76,7 @@ while diffe < 0 || areaRebar > AsMax% || AsMin > areaRebar
     areaRebar = longReinforce(minIndex,3);
     
     diffe = b - 2 * (cover + .01) - (phiRebar/1000 * (noRebar/4 + 1)) - (max([.02, phiRebar/1000, dMax+.005]) * (noRebar/4));
-    AsMax = .02 * h * b; %pre design
+    AsMax = .04 * h * b; %pre design
         
     h = h + incr; b = h;
     
