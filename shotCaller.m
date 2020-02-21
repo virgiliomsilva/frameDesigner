@@ -1,3 +1,12 @@
+%% UPDATES/ CHANGES
+%       change beams ratio 0.6
+
+
+% - DC1beamDesign changed ratio 
+% - DC1frameDesigner updated step 2
+
+
+
 %% SHOT CALLER
 % data folder is the input folder; for each ductility class put the
 % information on an appropriate folder and those are the names for
@@ -12,12 +21,12 @@ fck = 30 ; %GPa
 fyk = 400 ; %GPa
 cover = .035 ; %m
 %% DC1
-% buildingName1 = 'tenerIT_DC1' ;
-% seismicVerticalLoadCase = 40;
-% nonSeismicCases = 23;%[22,23];
-% folder = ['output\' buildingName1];
-% mkdir(folder);
-% DC1frameDesigner(buildingName1, fck, fyk, cover, seismicVerticalLoadCase,nonSeismicCases, folder);
+buildingName1 = 'tenerIT_DC1' ;
+seismicVerticalLoadCase = 40;
+nonSeismicCases = 23;%[22,23];
+folder = ['output\' buildingName1];
+mkdir(folder);
+DC1frameDesigner(buildingName1, fck, fyk, cover, seismicVerticalLoadCase,nonSeismicCases, folder);
 %% DC2
 buildingName2 = 'tenerIT_DC2' ;
 seismicVerticalLoadCase = 40;
@@ -49,4 +58,4 @@ DC3frameDesignerWSlab (buildingName4, fck, fyk, cover, seismicVerticalLoadCase, 
 finish = {y,mo,d,h,m,s};
 save finish
 
-system('shutdown -s')
+% system('shutdown -s')

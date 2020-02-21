@@ -3,3 +3,5 @@
 *.pdf
 data/
 output/
+start.mat
+finish.mat

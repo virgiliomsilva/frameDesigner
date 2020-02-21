@@ -29,7 +29,7 @@ h = .25;
 b = .2;
 incr = .05;
 count = 0; M_Rd = 0;
-while M_Rd < M_Ed || bOh > .8 || longReinfArea > AsMax
+while M_Rd < M_Ed || bOh > .6 || longReinfArea > AsMax
     
     %long rebar starting values
     d = h - (cover + .02);  %approximated
@@ -106,9 +106,9 @@ while M_Rd < M_Ed || bOh > .8 || longReinfArea > AsMax
     count = count+1;
 end
 %% STIRRUPS
-if exist('given_b', 'var'); sec_b = given_b; end
-if exist('given_h', 'var'); sec_h = given_h; end
-if exist('longReinfN', 'var'); longReinfNo = longReinfN; end
+if exist('given_b',     'var'); sec_b = given_b; end
+if exist('given_h',     'var'); sec_h = given_h; end
+if exist('longReinfN',  'var'); longReinfNo = longReinfN; end
 if exist('longReinfPh', 'var'); longReinfPhi = longReinfPh; end
 longReinfArea = longReinfNo * pi * (longReinfPhi/2000)^2;
 

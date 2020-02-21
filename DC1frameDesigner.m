@@ -3,8 +3,8 @@ function [] = DC1frameDesigner(buildingName, fck, fyk, cover, seismicVerticalLoa
 tic; disp('Started DC1');
 loading = waitbar(0,'Reading data','Name', 'DC1: Step 1 of 4');
 
-fnData = ['data\' buildingName '\dataset.csv'] ;
-fnNodes = ['data\' buildingName '\nodes.csv'] ;
+fnData    = ['data\' buildingName '\dataset.csv'] ;
+fnNodes   = ['data\' buildingName '\nodes.csv'] ;
 fnElement = ['data\' buildingName '\connectivity.csv'] ;
 
 [~, barsOfColumns, beamDesiOrd, ~, ~, DataDesignMax, DataDesignMin, element, ~, stories, nodes, cases] = dataTransformer (fnData, fnElement, fnNodes);
@@ -21,39 +21,26 @@ beams = []; beamsMid = [];
 for i = 1 : length(beamDesiOrd)
     barIndex = find(DataDesignMax(:,1,1) == beamDesiOrd(i));
     
-    %longitudinal rebar
-    mAux = [];
-    for j = allCasesIdx
-        M_Ed = DataDesignMax(barIndex, 5, j);
-        [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, 0);
-        mAux = [mAux;[sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition]];
-        
-        M_Ed = DataDesignMin(barIndex, 5, j);
-        [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, 0);
-        mAux = [mAux;[sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition]];
-    end
-    mAux = sortrows(mAux, [2 1 5]);
-    [M_rd, conIndex] = max(mAux(:,6)); %best M_rd
-    
-    %stirrups
-    given_h = mAux(conIndex, 1);
-    given_b = mAux(conIndex, 2);
-    longRebarN = mAux(conIndex, 3);
-    longRebarPh = mAux(conIndex, 4);
-    
+    %longitudinal rebar and stirrups on critical region
+    maxM_Ed = max(abs(DataDesignMax(barIndex, 5, :)));
     Fz_Ed = max(max(abs(DataDesignMax(barIndex, 4, allCasesIdx)),abs(DataDesignMin(barIndex, 4, allCasesIdx))));
     
-    [~, ~, ~, ~, ~, ~, ~, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
-    %midStirrups
-    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, given_b, given_h, longRebarN, longRebarPh);
+    [sec_h, sec_b, longReinfNo, longReinfPhi, ~, M_Rd, roMinCondition, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition] = ...
+        DC1beamDesign(fck, fyk , cover, maxM_Ed, Fz_Ed);
     
-    beams(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, mAux(conIndex, 7), shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition, Fz_Ed];
-    beamsMid(end+1,:) = [DataDesignMax(barIndex,1,1), given_h, given_b, longRebarN, longRebarPh, M_rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
+    %midStirrups
+    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo, longReinfPhi);
+    
+    beams   (end+1,:) = [DataDesignMax(barIndex,1,1), sec_h, sec_b, longReinfNo, longReinfPhi, M_Rd, roMinCondition, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition, Fz_Ed];
+    beamsMid(end+1,:) = [DataDesignMax(barIndex,1,1), sec_h, sec_b, longReinfNo, longReinfPhi, M_Rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
     
     waitbar(size(beams,1) / length(beamDesiOrd),loading,'Beams progress','Name', 'DC1: Step 2 of 4');
 end
-save([folder '\DC1beamsIt1.mat'],'beams')
+save([folder '\DC1beamsIt1.mat'],   'beams')
 save([folder '\DC1beamsIt1mid.mat'],'beamsMid')
+
+clear barIndex beams beamsMid Fz_Ed i longReinfArea longReinfNo longReinfPhi M_Rd maxM_Ed roMinCondition sCondition ...
+    sec_h sec_b shearLegs shearLegsMid shearPhi shearPhiMid shearSpac shearSpacMid V_Rd_it V_RdMid
 %%
 close(loading); loading = waitbar(0,'Initializing columns','Name', 'DC1: Step 3 of 4'); pause(1);
 noStories = max(stories(:,1)); count = 0; columns = []; columnsMid = [];
