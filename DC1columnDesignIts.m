@@ -1,7 +1,7 @@
 %% DC1 COLUMNS DESIGN FUNCTION
 % square columns with evenly distributed and spaced reinforcement along the
 % four sides
-function [sec_h, sec_b, noRebar, phiRebar, areaRebar, Ro, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong)
+function [sec_h, sec_b, noRebar, phiRebar, areaRebar, Ro, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesignIts(fck, fyk , cover, N_Axial, My_h, Mz_b, givenWidth, givenLong)
 sCondition = 0;
 %% INFO SELECTION
 if (fyk == 500 && fck > 12 && fck < 50)

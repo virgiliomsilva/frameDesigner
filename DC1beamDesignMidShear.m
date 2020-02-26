@@ -1,11 +1,8 @@
-function [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo, longReinfPhi)
-
+function [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC1beamDesignMidShear(Fz_Ed, sec_b, sec_h, longReinfNo, longReinfPhi)
 %% INFO SELECTION
-shearReinforce = importdata('info\steel_shear.csv');
+global fcd fywd cover
 
-fcd = fck / 1.5;
-fyd = fyk / 1.15;
-fywd = fyd;
+shearReinforce = importdata('info\steel_shear.csv');
 
 Fz_Ed = abs(Fz_Ed);
 %% STIRRUPS

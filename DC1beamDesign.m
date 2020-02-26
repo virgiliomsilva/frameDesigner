@@ -1,13 +1,16 @@
 %% DC1 BEAM DESIGN FUNCTION
-% beams with a maximum dimension of width over height of 80% with equal
+% beams with a maximum dimension of width over height of 60% with equal
 % reinforcement on top and bottom it can design only stirrups given the
 % longitudinal rebar
-function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
+% function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC1beamDesign(fck, fyk , cover, M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
+function [sec_h, sec_b, longReinfNo, longReinfPhi, longReinfArea, M_Rd, roMinCondition, shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd, sCondition] = DC1beamDesign(M_Ed, Fz_Ed, given_b, given_h, longReinfN, longReinfPh)
 sCondition = 0;
 %% INFO SELECTION
-if (fyk == 500 & fck > 12 & fck < 50)
+global fck fcd fctm fyk fyd fywd dMax cover incr
+
+if (fyk == 500 && fck > 12 && fck < 50)
     abaco = importdata('info\abacusC12_50S500A1.csv');
-elseif (fyk == 400 & fck > 12 & fck < 50)
+elseif (fyk == 400 && fck > 12 && fck < 50)
     abaco = importdata('info\abacusC12_50S400A1.csv');
 else
     error('Materials pair not supported!')
@@ -16,18 +19,10 @@ end
 longReinforce  = importdata('info\steel_beam.csv'); longReinforce = longReinforce(:, [1:3]);
 shearReinforce = importdata('info\steel_shear.csv');
 
-fcd = fck / 1.5;
-fctm = .3 * fck^(2/3);
-fyd = fyk / 1.15;
-fywd = fyd;
-dMax = .03;
-
-M_Ed = abs(M_Ed);
-Fz_Ed = abs(Fz_Ed);
+M_Ed = abs(M_Ed); Fz_Ed = abs(Fz_Ed);
 %% DIMENSIONS & LONG REBAR
-h = .25;
-b = .2;
-incr = .05;
+h = .25; b = .15;
+% incr = .05;
 count = 0; M_Rd = 0;
 while M_Rd < M_Ed || bOh > .6 || longReinfArea > AsMax
     
