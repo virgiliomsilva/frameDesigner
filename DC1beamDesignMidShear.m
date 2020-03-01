@@ -1,6 +1,6 @@
 function [shearReinfPhi, shearReinfSpac, shearReinfLoops, V_Rd] = DC1beamDesignMidShear(Fz_Ed, sec_b, sec_h, longReinfNo, longReinfPhi)
 %% INFO SELECTION
-global fcd fywd cover
+global fck fcd fyk fywd cover
 
 shearReinforce = importdata('info\steel_shear.csv');
 

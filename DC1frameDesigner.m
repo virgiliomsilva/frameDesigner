@@ -19,6 +19,7 @@ nonSeismicCasesIdx         = find(ismember(cases, nonSeismicCases));
 loading = waitbar(1,loading,'Reading data','Name', 'DC1: Step 1 of 4'); pause(1);
 %% STEP 2 - DESIGN BEAMS
 close(loading); loading = waitbar(0,'Initializing beams','Name', 'DC1: Step 2 of 4'); pause(1);
+
 beams = []; beamsMid = [];
 for i = 1 : length(beamDesiOrd)
     barIndex = find(DataDesignMax(:,1,1) == beamDesiOrd(i));
@@ -31,7 +32,7 @@ for i = 1 : length(beamDesiOrd)
         DC1beamDesign(maxM_Ed, Fz_Ed);
     
     %midStirrups
-    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(fck, fyk , cover, Fz_Ed, sec_b, sec_h, longReinfNo, longReinfPhi);
+    [shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid] = DC1beamDesignMidShear(Fz_Ed, sec_b, sec_h, longReinfNo, longReinfPhi);
     
     beams   (end+1,:) = [DataDesignMax(barIndex,1,1), sec_h, sec_b, longReinfNo, longReinfPhi, M_Rd, roMinCondition, shearPhi, shearSpac, shearLegs, V_Rd_it, sCondition, Fz_Ed];
     beamsMid(end+1,:) = [DataDesignMax(barIndex,1,1), sec_h, sec_b, longReinfNo, longReinfPhi, M_Rd, 0, shearPhiMid, shearSpacMid, shearLegsMid, V_RdMid, Fz_Ed];
@@ -45,7 +46,9 @@ clear barIndex beamsMid Fz_Ed i longReinfArea longReinfNo longReinfPhi M_Rd maxM
     sec_h sec_b shearLegs shearLegsMid shearPhi shearPhiMid shearSpac shearSpacMid V_Rd_it V_RdMid
 %% STEP 3 - DESIGN COLUMNS
 close(loading); loading = waitbar(0,'Initializing columns','Name', 'DC1: Step 3 of 4'); pause(1);
+
 noStories = max(stories(:,1)); count = 0; columns = []; columnsMid = [];
+tic
 for i = 1 : size(barsOfColumns,1)
     
     barNames = []; % to append in the end
@@ -70,14 +73,14 @@ for i = 1 : size(barsOfColumns,1)
             My_h    = DataDesignMax(barIndex, 5, k);
             Mz_b    = DataDesignMax(barIndex, 6, k);
             V_Ed    = 'skip';
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, V_Ed, minWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(N_axial, My_h, Mz_b, V_Ed, minWidth);
             mAux1 = [mAux1; [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, 0]];
             
             N_axial = DataDesignMin(barIndex, 2, k);
             My_h    = DataDesignMin(barIndex, 5, k);
             Mz_b    = DataDesignMin(barIndex, 6, k);
             V_Ed    = 'skip';
-            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, V_Ed, minWidth);
+            [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(N_axial, My_h, Mz_b, V_Ed, minWidth);
             mAux1 = [mAux1; [sec_h, sec_b, noRebar, phiRebar, areaRebar, reinfPercFin, M_Rd, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, 0]];
         end
         % flex dims and long
@@ -89,13 +92,14 @@ for i = 1 : size(barsOfColumns,1)
         V_Ed = max(max(abs(DataDesignMax(barIndex, 4, allCasesIdx)), abs(DataDesignMin(barIndex, 4, allCasesIdx))));
         
         N_axial = 'skip'; My_h = 'skip'; Mz_b = 'skip';
-        [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(fck, fyk , cover, N_axial, My_h, Mz_b, V_Ed, givenWidth, givenLong);
+        [~, ~, ~, ~, ~, ~, ~, shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition] = DC1columnDesign(N_axial, My_h, Mz_b, V_Ed, givenWidth, givenLong);
 
         % finish design
         auxColumns(j, :)      = mAux1(1, :);
         auxColumns(j, [8:14]) = [shearReinfPhi, shearReinfSpac, shearReinfLoops, shearReinfArea, V_Rd, sCondition, V_Ed];
+        toc
     end
-
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
    

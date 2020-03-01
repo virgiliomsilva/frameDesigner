@@ -1,4 +1,6 @@
-function [] = toSeismo(columns, beams, nodes, element, stories, DataMin, DataMax, massIndex, fck, fyk, cover, folder)
+function [] = toSeismo(columns, beams, nodes, element, stories, DataMin, DataMax, massIndex, folder)
+global fck fyk cover
+
 %% sections init
 sections = {};
 %% type columns
@@ -15,7 +17,7 @@ for i = 1 : size(columnTypesAux,1)
     b = columnTypesAux(i,2);
     rebarQtd = columnTypesAux(i,3);
     rebarPhi = columnTypesAux(i,4);
-    stirPhi = columnTypesAux(i,5);
+    stirPhi  = columnTypesAux(i,5);
     stirSpac = columnTypesAux(i,6);
     stirBran = columnTypesAux(i,7);
     sections{end+1} = sectionWriter(["Column" + i], fyk, fck, h, b, cover, rebarPhi, rebarQtd, stirPhi, stirBran, stirSpac);

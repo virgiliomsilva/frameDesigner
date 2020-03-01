@@ -1,5 +1,5 @@
 %% UPDATES/ CHANGES
-%       change beams ratio 0.6
+%       change beams ratio 0.6 and 0.4
 %       corrigir corte em vigas e pilares!
 %       if Nrd / vrd =  skip
 %       use global variabel
